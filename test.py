@@ -51,25 +51,54 @@ pipeline_LinearSVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop
 pipeline_DecisionTree = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
                      ('tfidf', TfidfTransformer()),
                      ('norm', Normalizer()),
-                     ('clf', tree.DecisionTreeClassifier())
+                     ('clf', tree.DecisionTreeClassifier(min_samples_split=1))
                     ])
 #-----------------------------------------------------------------------
-# Bernoullie Naive Bayes
-pipeline_BernoullieNaivesBayes = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+# Bernoulli Naive Bayes
+pipeline_BernoulliNaiveBayes = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
                      ('tfidf', TfidfTransformer()),
                      ('norm', Normalizer()),
                      ('clf', BernoulliNB(alpha=1.0))
                     ])
 
 #-------------------------------------------------------------
-parameters = {'clf__C': [1, 2, 5, 10]}
+parameters_LogisticRegression = {'clf__C': [1, 2, 5, 10]} # C: inverse of regularization strength
+parameters_SVCandLinearSVC = {'clf__C': [1.0, 2.0, 5.0, 10.0]} # C: penalty parameter C of the error term
+parameters_DecisionTree = {'clf__min_samples_split': [2,3,4]} # min_samples_split: MIN number of samples required to split an internal node
+parameters_BernoulliNaiveBayes = {'clf__alpha':[0.5, 1.0, 2.0, 3.0]} # alpha: Additive (LaPlace/Lidstone) smoothing paramter
 
-#grid = GridSearchCV(pipeline_LogisticRegression, param_grid=parameters, cv=5)
-#grid = GridSearchCV(pipeline_SVC, param_grid=parameters, cv=5)
-#grid = GridSearchCV(pipeline_LinearSVC, param_grid=parameters, cv=5)
-#grid = GridSearchCV(pipeline_DecisionTree, param_grid=parameters, cv=5)
-#grid = GridSearchCV(pipeline_BernoullieNaivesBayes, param_grid=parameters, cv=5)
+grid_LogisticRegression = GridSearchCV(pipeline_LogisticRegression, param_grid=parameters_LogisticRegression, cv=5)
+grid_SVC = GridSearchCV(pipeline_SVC, param_grid=parameters_SVCandLinearSVC, cv=5)
+grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_SVCandLinearSVC, cv=5)
+grid_DecisionTree = GridSearchCV(pipeline_DecisionTree, param_grid=parameters_DecisionTree, cv=5)
+grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid=parameters_BernoulliNaiveBayes, cv=5)
 
-grid.fit(X_train, y_train)
-print ("score = %3.2f" %(grid.score(X_test, y_test)))
-print (grid.best_params_)
+print("----------------------------------------------------------------------")
+print("Logistic Regression")
+grid_LogisticRegression.fit(X_train, y_train)
+print ("score = %3.2f" %(grid_LogisticRegression.score(X_test, y_test)))
+print (grid_LogisticRegression.best_params_)
+
+print("----------------------------------------------------------------------")
+print("SVC")
+grid_SVC.fit(X_train, y_train)
+print ("score = %3.2f" %(grid_SVC.score(X_test, y_test)))
+print (grid_SVC.best_params_)
+
+print("----------------------------------------------------------------------")
+print("Linear SVC")
+grid_LinearSVC.fit(X_train, y_train)
+print ("score = %3.2f" %(grid_LinearSVC.score(X_test, y_test)))
+print (grid_LinearSVC.best_params_)
+
+print("----------------------------------------------------------------------")
+print("Decision Tree")
+grid_DecisionTree.fit(X_train, y_train)
+print ("score = %3.2f" %(grid_DecisionTree.score(X_test, y_test)))
+print (grid_DecisionTree.best_params_)
+
+print("----------------------------------------------------------------------")
+print("Bernoulli Naive Bayes")
+grid_BernoulliNaiveBayes.fit(X_train, y_train)
+print ("score = %3.2f" %(grid_BernoulliNaiveBayes.score(X_test, y_test)))
+print (grid_BernoulliNaiveBayes.best_params_)
