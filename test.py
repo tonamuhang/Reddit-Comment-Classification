@@ -37,7 +37,7 @@ pipeline_LogisticRegression = Pipeline([('vect', CountVectorizer(ngram_range=(1,
 pipeline_SVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
                      ('tfidf', TfidfTransformer()),
                      ('norm', Normalizer()),
-                     ('clf', SVC())
+                     ('clf', SVC(gamma='scale'))
                     ])
 #-----------------------------------------------------------------------
 # # Support Vector Machine
@@ -73,23 +73,23 @@ grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_SVCandLi
 grid_DecisionTree = GridSearchCV(pipeline_DecisionTree, param_grid=parameters_DecisionTree, cv=5)
 grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid=parameters_BernoulliNaiveBayes, cv=5)
 
-print("----------------------------------------------------------------------")
-print("Logistic Regression")
-grid_LogisticRegression.fit(X_train, y_train)
-print ("score = %3.2f" %(grid_LogisticRegression.score(X_test, y_test)))
-print (grid_LogisticRegression.best_params_)
+# print("----------------------------------------------------------------------")   # 0.54   clf__c: 2
+# print("Logistic Regression")
+# grid_LogisticRegression.fit(X_train, y_train)
+# print ("score = %3.2f" %(grid_LogisticRegression.score(X_test, y_test)))
+# print (grid_LogisticRegression.best_params_)
 
-print("----------------------------------------------------------------------")
-print("SVC")
-grid_SVC.fit(X_train, y_train)
-print ("score = %3.2f" %(grid_SVC.score(X_test, y_test)))
-print (grid_SVC.best_params_)
+# print("----------------------------------------------------------------------")
+# print("SVC")
+# grid_SVC.fit(X_train, y_train)
+# print ("score = %3.2f" %(grid_SVC.score(X_test, y_test)))
+# print (grid_SVC.best_params_)
 
-print("----------------------------------------------------------------------")
-print("Linear SVC")
-grid_LinearSVC.fit(X_train, y_train)
-print ("score = %3.2f" %(grid_LinearSVC.score(X_test, y_test)))
-print (grid_LinearSVC.best_params_)
+# print("----------------------------------------------------------------------")      # 0.56  clf__c: 1.0
+# print("Linear SVC")
+# grid_LinearSVC.fit(X_train, y_train)
+# print ("score = %3.2f" %(grid_LinearSVC.score(X_test, y_test)))
+# print (grid_LinearSVC.best_params_)
 
 print("----------------------------------------------------------------------")
 print("Decision Tree")
@@ -97,8 +97,8 @@ grid_DecisionTree.fit(X_train, y_train)
 print ("score = %3.2f" %(grid_DecisionTree.score(X_test, y_test)))
 print (grid_DecisionTree.best_params_)
 
-print("----------------------------------------------------------------------")
-print("Bernoulli Naive Bayes")
-grid_BernoulliNaiveBayes.fit(X_train, y_train)
-print ("score = %3.2f" %(grid_BernoulliNaiveBayes.score(X_test, y_test)))
-print (grid_BernoulliNaiveBayes.best_params_)
+# print("----------------------------------------------------------------------")     # 0.40 clf__alpha: 0.5
+# print("Bernoulli Naive Bayes")
+# grid_BernoulliNaiveBayes.fit(X_train, y_train)
+# print ("score = %3.2f" %(grid_BernoulliNaiveBayes.score(X_test, y_test)))
+# print (grid_BernoulliNaiveBayes.best_params_)
