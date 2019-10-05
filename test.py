@@ -42,14 +42,16 @@ X_test_tfidf = tfidf_transformer.transform(X_test_counts)
 # print(accuracy_score(y_test, predicted))
 
 # Pipline format, follow this:
-pipeline = Pipeline([('vect', feature_extraction.text.CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+pipeline = Pipeline([('vect', feature_extraction.text.CountVectorizer(ngram_range=(1, 1), stop_words='english')),
                      ('tfidf', feature_extraction.text.TfidfTransformer()),
                      ('norm', preprocessing.Normalizer()),
                      ('clf', LogisticRegression(multi_class='multinomial', solver='newton-cg'))])
 
+
 parameters = {'clf__C': [1, 2, 5, 10]}
 grid = GridSearchCV(pipeline, param_grid=parameters, cv=5)
 
+print("Starting to fit")
 grid.fit(X_train, y_train)
 
 print ("score = %3.2f" %(grid.score(X_test, y_test)))
