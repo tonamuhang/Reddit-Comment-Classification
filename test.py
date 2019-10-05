@@ -1,14 +1,16 @@
 import pandas as pd
 import numpy as np
-from sklearn import feature_extraction, preprocessing
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn import feature_extraction, preprocessing, tree
+from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.svm import LinearSVC,SVC
+from sklearn.naive_bayes import BernoulliNB
 from sklearn.metrics import accuracy_score
-# load data
+
+# Load data
 from sklearn.pipeline import Pipeline
 
 train = pd.read_csv("reddit_train.csv", sep=',')
@@ -20,37 +22,54 @@ labels_list = train['subreddits']
 
 labels = labels_list
 
-# Process Data
+# Process Data into train set and test set
 X_train, X_test, y_train, y_test = train_test_split(comment, labels, random_state = 0)
-cvec = CountVectorizer(min_df= 1, stop_words='english')
-X_train_counts = cvec.fit_transform(X_train)
-X_test_counts = cvec.transform(X_test)
-
-tfidf_transformer = TfidfTransformer(smooth_idf=True, use_idf=True)
-X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
-X_test_tfidf = tfidf_transformer.transform(X_test_counts)
-
-# # TODO: Fix y format
-# # Start to fit
-# print("Starting to fit...")
-# clf = LogisticRegression(random_state=0, multi_class='multinomial', solver='newton-cg')
-# clf.fit(X_train_tfidf, y_train)
-#
-# # Predict
-# print("Starting to predict")
-# predicted = clf.predict(X_test_tfidf)
-# print(accuracy_score(y_test, predicted))
 
 # Pipline format, follow this:
-pipeline = Pipeline([('vect', feature_extraction.text.CountVectorizer(ngram_range=(1, 2), stop_words='english')),
-                     ('tfidf', feature_extraction.text.TfidfTransformer()),
-                     ('norm', preprocessing.Normalizer()),
-                     ('clf', LogisticRegression(multi_class='multinomial', solver='newton-cg'))])
+pipeline_LogisticRegression = Pipeline([('vect', CountVectorizer(ngram_range=(1, 1), stop_words='english')),
+                     ('tfidf', TfidfTransformer()),
+                     ('norm', Normalizer()),
+                     ('clf', LogisticRegression(multi_class='multinomial', solver='newton-cg'))
+                     ])
 
+#-----------------------------------------------------------------------
+# # Support Vector Classification
+pipeline_SVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+                     ('tfidf', TfidfTransformer()),
+                     ('norm', Normalizer()),
+                     ('clf', SVC())
+                    ])
+#-----------------------------------------------------------------------
+# # Support Vector Machine
+pipeline_LinearSVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+                     ('tfidf', TfidfTransformer()),
+                     ('norm', Normalizer()),
+                     ('clf', LinearSVC())
+                    ])
+#-----------------------------------------------------------------------
+# Decision Tree
+pipeline_DecisionTree = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+                     ('tfidf', TfidfTransformer()),
+                     ('norm', Normalizer()),
+                     ('clf', tree.DecisionTreeClassifier())
+                    ])
+#-----------------------------------------------------------------------
+# Bernoullie Naive Bayes
+pipeline_BernoullieNaivesBayes = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+                     ('tfidf', TfidfTransformer()),
+                     ('norm', Normalizer()),
+                     ('clf', BernoulliNB(alpha=1.0))
+                    ])
+
+#-------------------------------------------------------------
 parameters = {'clf__C': [1, 2, 5, 10]}
-grid = GridSearchCV(pipeline, param_grid=parameters, cv=5)
+
+#grid = GridSearchCV(pipeline_LogisticRegression, param_grid=parameters, cv=5)
+#grid = GridSearchCV(pipeline_SVC, param_grid=parameters, cv=5)
+#grid = GridSearchCV(pipeline_LinearSVC, param_grid=parameters, cv=5)
+#grid = GridSearchCV(pipeline_DecisionTree, param_grid=parameters, cv=5)
+#grid = GridSearchCV(pipeline_BernoullieNaivesBayes, param_grid=parameters, cv=5)
 
 grid.fit(X_train, y_train)
-
 print ("score = %3.2f" %(grid.score(X_test, y_test)))
 print (grid.best_params_)
