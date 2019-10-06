@@ -48,10 +48,10 @@ pipeline_LinearSVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop
                     ])
 #-----------------------------------------------------------------------
 # Decision Tree
-pipeline_DecisionTree = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
+pipeline_DecisionTree = Pipeline([('vect', CountVectorizer(ngram_range=(1, 1), stop_words='english')),
                      ('tfidf', TfidfTransformer()),
                      ('norm', Normalizer()),
-                     ('clf', tree.DecisionTreeClassifier(min_samples_split=1))
+                     ('clf', tree.DecisionTreeClassifier())
                     ])
 #-----------------------------------------------------------------------
 # Bernoulli Naive Bayes
@@ -64,13 +64,13 @@ pipeline_BernoulliNaiveBayes = Pipeline([('vect', CountVectorizer(ngram_range=(1
 #-------------------------------------------------------------
 parameters_LogisticRegression = {'clf__C': [1, 2, 5, 10]} # C: inverse of regularization strength
 parameters_SVCandLinearSVC = {'clf__C': [1.0, 2.0, 5.0, 10.0]} # C: penalty parameter C of the error term
-parameters_DecisionTree = {'clf__min_samples_split': [2,3,4]} # min_samples_split: MIN number of samples required to split an internal node
+parameters_DecisionTree = {} # min_samples_split: MIN number of samples required to split an internal node
 parameters_BernoulliNaiveBayes = {'clf__alpha':[0.5, 1.0, 2.0, 3.0]} # alpha: Additive (LaPlace/Lidstone) smoothing paramter
 
 grid_LogisticRegression = GridSearchCV(pipeline_LogisticRegression, param_grid=parameters_LogisticRegression, cv=5)
 grid_SVC = GridSearchCV(pipeline_SVC, param_grid=parameters_SVCandLinearSVC, cv=5)
 grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_SVCandLinearSVC, cv=5)
-grid_DecisionTree = GridSearchCV(pipeline_DecisionTree, param_grid=parameters_DecisionTree, cv=5)
+grid_DecisionTree = GridSearchCV(pipeline_DecisionTree, param_grid=parameters_DecisionTree, cv=5, verbose=3, n_jobs=5)
 grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid=parameters_BernoulliNaiveBayes, cv=5)
 
 # print("----------------------------------------------------------------------")   # 0.54   clf__c: 2
@@ -94,7 +94,7 @@ grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid
 print("----------------------------------------------------------------------")
 print("Decision Tree")
 grid_DecisionTree.fit(X_train, y_train)
-print ("score = %3.2f" %(grid_DecisionTree.score(X_test, y_test)))
+print ("score = %3.3f" %(grid_DecisionTree.score(X_test, y_test)))
 print (grid_DecisionTree.best_params_)
 
 # print("----------------------------------------------------------------------")     # 0.40 clf__alpha: 0.5
