@@ -8,7 +8,17 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import BernoulliNB
+from sklearn.feature_extraction import text
 from sklearn.metrics import accuracy_score
+import re
+from sklearn.preprocessing import StandardScaler
+
+# Modify original stop words
+my_stopwords = text.ENGLISH_STOP_WORDS.union(["january", "february", "march", "april", "may", "june",
+                                              "july", "august", "september", "october", "november",
+                                              "december", "tomorrow", "today", "yesterday", "hundred", "thousand",
+                                              "million"])
+
 
 # Load data
 from sklearn.pipeline import Pipeline
@@ -18,6 +28,10 @@ test = pd.read_csv("reddit_test.csv", sep=',')
 test_x = test['comments']
 
 comment = train['comments']
+# for i, c in enumerate(comment):
+#         comment.set_value(i, re.sub(r"http\S+", "", c))
+
+
 labels_list = train['subreddits']
 
 labels = labels_list
@@ -35,7 +49,7 @@ pipeline_LogisticRegression = Pipeline([('vect', CountVectorizer(ngram_range=(1,
 #-----------------------------------------------------------------------
 # # Support Vector Machine
 pipeline_LinearSVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
-                     ('tfidf', TfidfTransformer()),
+                     ('tfidf', TfidfTransformer(sublinear_tf=True)),
                      ('norm', Normalizer()),
                      ('clf', LinearSVC())
                     ])
@@ -56,12 +70,12 @@ pipeline_BernoulliNaiveBayes = Pipeline([('vect', CountVectorizer(ngram_range=(1
 
 #-------------------------------------------------------------
 parameters_LogisticRegression = {'clf__C': [1, 2, 5, 10]} # C: inverse of regularization strength
-parameters_LinearSVC = {'clf__C': [1.0, 2.0, 5.0, 10.0]} # C: penalty parameter C of the error term
+parameters_LinearSVC = {'clf__C': [1.0]} # C: penalty parameter C of the error term
 parameters_DecisionTree = {'clf__max_depth': [1024, 2048, 5096]} # max_depth: Not too high(over fitting) nor too low(under fitting)
 parameters_BernoulliNaiveBayes = {'clf__alpha':[0.5, 1.0, 2.0, 3.0]} # alpha: Additive (LaPlace/Lidstone) smoothing paramter
 
 grid_LogisticRegression = GridSearchCV(pipeline_LogisticRegression, param_grid=parameters_LogisticRegression, cv=5)
-grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_LinearSVC, cv=5)
+grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_LinearSVC, cv=5, n_jobs=5, verbose=3)
 grid_DecisionTree = GridSearchCV(pipeline_DecisionTree, param_grid=parameters_DecisionTree, cv=5, verbose=3, n_jobs=5)
 grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid=parameters_BernoulliNaiveBayes, cv=5)
 
@@ -72,20 +86,25 @@ grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid
 # print (grid_LogisticRegression.best_params_)
 
 
-# print("----------------------------------------------------------------------")      # 0.56  clf__c: 1.0
-# print("Linear SVC")
-# grid_LinearSVC.fit(X_train, y_train)
-# print ("score = %3.2f" %(grid_LinearSVC.score(X_test, y_test)))
-# print (grid_LinearSVC.best_params_)
+print("----------------------------------------------------------------------")
+print("Linear SVC")
+grid_LinearSVC.fit(X_train, y_train)
+print ("score = %3.4f" %(grid_LinearSVC.score(X_test, y_test)))
+print (grid_LinearSVC.best_params_)
 
-print("----------------------------------------------------------------------")        # 0.32 max_depth: 2048
-print("Decision Tree")
-grid_DecisionTree.fit(X_train, y_train)
-print ("score = %3.3f" %(grid_DecisionTree.score(X_test, y_test)))
-print (grid_DecisionTree.best_params_)
+# print("----------------------------------------------------------------------")        # 0.32 max_depth: 2048
+# print("Decision Tree")
+# grid_DecisionTree.fit(X_train, y_train)
+# print ("score = %3.3f" %(grid_DecisionTree.score(X_test, y_test)))
+# print (grid_DecisionTree.best_params_)
 
 # print("----------------------------------------------------------------------")     # 0.40 clf__alpha: 0.5
 # print("Bernoulli Naive Bayes")
 # grid_BernoulliNaiveBayes.fit(X_train, y_train)
 # print ("score = %3.2f" %(grid_BernoulliNaiveBayes.score(X_test, y_test)))
 # print (grid_BernoulliNaiveBayes.best_params_)
+
+# Todo: Generate id column
+# prediction = grid_LinearSVC.predict(test_x)0.5641
+#
+# prediction = pd.DataFrame(prediction, columns=['Category']).to_csv('prediction.csv')
