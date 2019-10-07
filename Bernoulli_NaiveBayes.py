@@ -5,6 +5,7 @@ from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer, TfidfVectorizer
 import nltk
+from nltk import WordNetLemmatizer, PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from string import punctuation
@@ -46,19 +47,26 @@ comments = comments.apply(lambda x: remove_URLs(x))
 comments = comments.apply(lambda x: set_lowercase(x))
 comments = comments.apply(lambda x: remove_tags(x))
 comments = comments.apply(lambda x: remove_special_chars_digits(x))
-
 print("----remove urls tags, set lowercase, remove specials characters and digits----\n", comments.head(5))
 
 # Tokenize comments
 comments = comments.apply(word_tokenize)
-print("----tokenized----\n", comments.head(5))
+print("----tokenized----\n", comments.head(12))
+
+# Lemmatize
+lemmatizer = nltk.WordNetLemmatizer()
+def lemmatize(text):
+    for row_i in range(comments.shape[0]):
+        for word_j in range(len(comments[row_i])):
+            comments[row_i][word_j] = lemmatizer.lemmatize(comments[row_i][word_j])
+    return text
+comments = lemmatize(comments)
+print("----lemmatized----\n", comments.head(12))
 
 # Remove Stopwords
 stop_words = set(stopwords.words('english'))
 comments = comments.apply(lambda x: [item for item in x if item not in stop_words])
 print("----removed stop words----\n", comments.head(5))
-
-
 
 
 
