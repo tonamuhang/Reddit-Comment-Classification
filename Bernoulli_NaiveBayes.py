@@ -83,11 +83,21 @@ def predict (priors,likelyhoods,C_test):
             else:
                 docMatrix[i][j]=1-likelyhoods[i][j]
 
-    product=[0]*20
+    product=[1]*docMatrix.shape[0]
     for p in range(docMatrix.shape[0]):
         for q in range(docMatrix.shape[1]):
             product[p]=product[p]*docMatrix[p][q]
 
+    #compute posterior probabilities for each comment based on 20 classes
+    #the final prediction will be the max of all the posterior probabilities
+    posProb = [[0]*priors.shape[0]]*product.shape[0]
+    predictionArray=[0]*product.shape[0]
+    for x in range(product.shape[0]):
+        for y in range(priors.shape[0]):
+            posProb[x][y]=product[x]*priors[y]
+    for z in range(posProb.shape[0]):
+        maximumProb = max(posProb[z])
+        indexOfMaxima=posProb.index(maximumProb)
+        predictionArray[z]=Karray[indexOfMaxima]
 
-    result = Karray[0]
-    return result
+    return predictionArray
