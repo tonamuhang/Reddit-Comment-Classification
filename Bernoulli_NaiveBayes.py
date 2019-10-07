@@ -6,10 +6,11 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer, TfidfVectorizer
 import nltk
 from nltk import WordNetLemmatizer, PorterStemmer
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
 from string import punctuation
 import re
+nltk.download('punkt')
 
 # Read in files
 train = pd.read_csv("reddit_train.csv", sep=',')
@@ -67,6 +68,29 @@ print("----lemmatized----\n", comments.head(12))
 stop_words = set(stopwords.words('english'))
 comments = comments.apply(lambda x: [item for item in x if item not in stop_words])
 print("----removed stop words----\n", comments.head(5))
+
+# Repeat Replacer
+# http://www.ishenping.com/ArtInfo/971959.html
+class RepeatReplacer():
+    def __init__(self):
+        self.repeat_reg = re.compile(r'(\w*)(\w)\2(\w*)')
+        self.repl = r'\1\2\3'
+    def replace(self, word):
+        if wordnet.synsets(word):  # 判断当前字符串是否是单词
+            return word
+        repl_word = self.repeat_reg.sub(self.repl, word)
+        if repl_word != word:
+            return self.replace(repl_word)
+        else:
+            return repl_word
+replacer = RepeatReplacer()
+def remove_repeat(text):
+    for row_i in range(comments.shape[0]):
+        for word_j in range(len(comments[row_i])):
+            comments[row_i][word_j] = replacer.replace(comments[row_i][word_j])
+    return text
+comments = remove_repeat(comments)
+print("----removed repeat----\n", comments.head(5))
 
 
 
