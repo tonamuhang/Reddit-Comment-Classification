@@ -3,7 +3,7 @@ import numpy as np
 from sklearn import feature_extraction, preprocessing, tree
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 import nltk
 from nltk import WordNetLemmatizer, PorterStemmer
 from nltk.corpus import stopwords, wordnet
@@ -11,6 +11,9 @@ from nltk.tokenize import word_tokenize
 from string import punctuation
 import re
 from sklearn.metrics import accuracy_score
+import textpreprocess
+from sklearn.feature_extraction import DictVectorizer
+
 
 class BNB:
 
@@ -22,44 +25,62 @@ class BNB:
         # Classes
         self.classes = None
 
-    # Input: None
-    # Output: None
-    # Usage: Create a dictionary
-    def create_dictionary(self, sentence):
-        sentence_dict = {}
-        prev = ''
-        for word in sentence.split():
-            if word not in sentence_dict:
-                sentence_dict[word] = []
-            sentence_dict[word].append(prev)
-            prev = word
+        # Vocabulary of the whole document
+        self.V = None
 
-        return sentence_dict
+        # Vocabulary of each class
+        self.Vc = {}
+
+    # Input: Dataframe
+    # Output: None
+    def create_feature(self, X, min_df=5):
+        # X = textpreprocess.remove_consecutive(X)
+
+        v = CountVectorizer(stop_words='english', min_df=min_df)
+        X = v.fit_transform(X)
+
+        # print(v.get_feature_names())
+        return v, X
 
     # Input: Dataframe m*n, dataframe n*1
     # Output: None
-    def fit(self, feature, label, alpha=1):
+    def fit(self, feature, label):
         # Load data
         X = feature
         y = label
 
         # Dictionaries for features and classes
         self.classes = y.to_frame().subreddits.unique()
-        num_feature = len(X)
-        print(num_feature)
+        self.V, bag_of_words = self.create_feature(X)
+        num_sample = len(X)
         num_class = len(self.classes)
+
+        # Counts
+        sum_words = bag_of_words.sum(axis=0)
+        words_freq = [(word, sum_words[0, idx]) for word, idx in self.V.vocabulary_.items()]
 
         for k in self.classes:
             # Nk be the total number of documents of that class
             Nk = len(y[y == k])
-            # nkwt be the number of documents of class k in which wt is observed
-            nkwt = len(X[y == k])
+            self.prob_matrix[k] = {}
 
-            # Calculate P(y) with laplace smoothing
-            self.likelihood[k] = (alpha + Nk) / (num_class * alpha + num_feature)
+            # Build dictionary for the class
+            self.Vc[k] = self.create_feature(X[y == k])
+            print(k, " ######################################")
+            # print(self.Vc[k])
 
-            # Calculate P(X|y) with laplace smoothing
-            self.prob_matrix[k] = (alpha + nkwt) / (num_feature * alpha + Nk * num_feature)
+            # # nkwt be the number of documents of class k in which wt is observed
+            for w in self.Vc[k][0].vocabulary_:
+                nkwt = 0
+                for t in words_freq:
+                    if t[0] == w:
+                        nkwt += t[1]
+                        # Calculate P(X|y) with + 1 laplace smoothing
+                        self.prob_matrix[k][w] = (1 + nkwt) / (2 + Nk)
+                        # print((1 + nkwt) / (2 + Nk))
+
+            # Calculate P(y)
+            self.likelihood[k] = Nk / num_class
 
         print("Fit Finished")
         return self
@@ -67,21 +88,34 @@ class BNB:
     # Predict on a single class.
     def predict_helper(self, sentence):
         result = None
-        features = self.create_dictionary(sentence)
         max_prob = -999999999
+        features, count = self.create_feature(sentence, min_df=1)
 
         for k in self.classes:
-            prior = self.prob_matrix[k]
-
+            prior = self.likelihood[k]
 
             # TODO: Calculate posterior
             # posterior = [bt P(wt |Ck) + (1−bt) (1−P(wt |Ck))]
             # P(wt |Ck) = self.likelihood[k]
             # bt = ???
-            
+            posterior = 1
+            for f in self.V.vocabulary_:
+
+                if f in features.vocabulary_:
+                    try:
+                        posterior *= self.prob_matrix[k][f]
+                    except KeyError:
+                        posterior += 0
+                else:
+                    try:
+                        posterior *= (1 - self.prob_matrix[k][f])
+                    except:
+                        posterior += 0
+
             # Probability = prior * posterior
             # if the new prob is greater than the current max, replace it and the predicted result
-            prob = prior
+            prob = prior * posterior
+
             if prob > max_prob:
                 max_prob = prob
                 result = k
@@ -90,14 +124,18 @@ class BNB:
 
     def predict(self, X):
         result = {}
+        i = 0.0
+        total = len(X)
         for sentence in X:
-            result[sentence] = self.predict_helper(sentence)
+            i += 1
+            print("Completed: ", i/total)
+            result[sentence] = self.predict_helper(sentence.split(" "))
 
         return result
 
     def score(self, X, y):
         predicted = self.predict(X)
-        # return accuracy_score(y, predicted)
+        return accuracy_score(y, predicted)
 
 
 # Read in files
@@ -106,10 +144,8 @@ comments = train['comments']
 labels = train['subreddits']
 
 # Process Data into train set and test set
-X_train, X_test, y_train, y_test = train_test_split(comments, labels, random_state = 0, test_size=0.5)
+X_train, X_test, y_train, y_test = train_test_split(comments, labels, random_state=0, test_size=0.5)
 
 bnb = BNB()
 bnb.fit(X_train, y_train)
-
-print(bnb.score(X_test, y_test))
-
+bnb.score(X_train, y_train)
