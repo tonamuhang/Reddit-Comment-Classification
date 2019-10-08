@@ -80,7 +80,7 @@ class BNB:
                         # print((1 + nkwt) / (2 + Nk))
 
             # Calculate P(y)
-            self.likelihood[k] = Nk / num_class
+            self.likelihood[k] = Nk / num_sample
 
         print("Fit Finished")
         return self
@@ -100,17 +100,13 @@ class BNB:
             # bt = ???
             posterior = 1
             for f in self.V.vocabulary_:
-
                 if f in features.vocabulary_:
-                    try:
+                    if f in self.Vc[k]:
                         posterior *= self.prob_matrix[k][f]
-                    except KeyError:
-                        posterior += 0
-                else:
-                    try:
+
+                    else:
                         posterior *= (1 - self.prob_matrix[k][f])
-                    except:
-                        posterior += 0
+
 
             # Probability = prior * posterior
             # if the new prob is greater than the current max, replace it and the predicted result
@@ -130,6 +126,8 @@ class BNB:
             i += 1
             print("Completed: ", i/total)
             result[sentence] = self.predict_helper([sentence])
+            print(sentence)
+            print(result[sentence])
 
         return result
 
