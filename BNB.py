@@ -36,7 +36,7 @@ class BNB:
     def create_feature(self, X, min_df=5):
         # X = textpreprocess.remove_consecutive(X)
 
-        v = CountVectorizer(stop_words='english', min_df=min_df)
+        v = CountVectorizer(stop_words='english', min_df=min_df, )
         X = v.fit_transform(X)
 
         # print(v.get_feature_names())
@@ -129,7 +129,7 @@ class BNB:
         for sentence in X:
             i += 1
             print("Completed: ", i/total)
-            result[sentence] = self.predict_helper(sentence.split(" "))
+            result[sentence] = self.predict_helper([sentence])
 
         return result
 
@@ -144,8 +144,8 @@ comments = train['comments']
 labels = train['subreddits']
 
 # Process Data into train set and test set
-X_train, X_test, y_train, y_test = train_test_split(comments, labels, random_state=0, test_size=0.5)
+X_train, X_test, y_train, y_test = train_test_split(comments, labels, random_state=0, test_size=0.2)
 
 bnb = BNB()
 bnb.fit(X_train, y_train)
-bnb.score(X_train, y_train)
+bnb.score(X_test, y_test)
