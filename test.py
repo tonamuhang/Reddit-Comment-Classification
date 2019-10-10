@@ -12,6 +12,8 @@ from sklearn.feature_extraction import text
 from sklearn.metrics import accuracy_score
 import re
 from sklearn.preprocessing import StandardScaler
+import nltk
+tokenizer = nltk.casual.TweetTokenizer(preserve_case=False, reduce_len=True)
 
 # Modify original stop words
 my_stopwords = text.ENGLISH_STOP_WORDS.union(["january", "february", "march", "april", "may", "june",
@@ -37,7 +39,7 @@ labels_list = train['subreddits']
 labels = labels_list
 
 # Process Data into train set and test set
-X_train, X_test, y_train, y_test = train_test_split(comment, labels, random_state = 0)
+X_train, X_test, y_train, y_test = train_test_split(comment, labels, random_state = 1)
 
 # Pipline format, follow this:
 pipeline_LogisticRegression = Pipeline([('vect', CountVectorizer(ngram_range=(1, 1), stop_words='english')),
@@ -48,11 +50,12 @@ pipeline_LogisticRegression = Pipeline([('vect', CountVectorizer(ngram_range=(1,
 
 #-----------------------------------------------------------------------
 # # Support Vector Machine
-pipeline_LinearSVC = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2), stop_words='english')),
-                     ('tfidf', TfidfTransformer(sublinear_tf=True)),
+pipeline_LinearSVC = Pipeline([('vect', CountVectorizer()),
+                     ('tfidf', TfidfTransformer(sublinear_tf=True,norm='l1')),
                      ('norm', Normalizer()),
-                     ('clf', LinearSVC())
+                     ('clf', LinearSVC(C=0.215,max_iter=5000,penalty='l2'))
                     ])
+
 #-----------------------------------------------------------------------
 # Decision Tree
 pipeline_DecisionTree = Pipeline([('vect', CountVectorizer(ngram_range=(1, 1), stop_words='english')),
@@ -70,12 +73,14 @@ pipeline_BernoulliNaiveBayes = Pipeline([('vect', CountVectorizer(ngram_range=(1
 
 #-------------------------------------------------------------
 parameters_LogisticRegression = {'clf__C': [1, 2, 5, 10]} # C: inverse of regularization strength
-parameters_LinearSVC = {'clf__C': [1.0]} # C: penalty parameter C of the error term
+
+parameters_LinearSVC = {}  # ignore best parameters search
+
 parameters_DecisionTree = {'clf__max_depth': [1024, 2048, 5096]} # max_depth: Not too high(over fitting) nor too low(under fitting)
 parameters_BernoulliNaiveBayes = {'clf__alpha':[0.5, 1.0, 2.0, 3.0]} # alpha: Additive (LaPlace/Lidstone) smoothing paramter
 
 grid_LogisticRegression = GridSearchCV(pipeline_LogisticRegression, param_grid=parameters_LogisticRegression, cv=5)
-grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_LinearSVC, cv=5, n_jobs=5, verbose=3)
+grid_LinearSVC = GridSearchCV(pipeline_LinearSVC, param_grid=parameters_LinearSVC, cv=5, n_jobs=-1, verbose=3)
 grid_DecisionTree = GridSearchCV(pipeline_DecisionTree, param_grid=parameters_DecisionTree, cv=5, verbose=3, n_jobs=5)
 grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid=parameters_BernoulliNaiveBayes, cv=5)
 
@@ -84,13 +89,14 @@ grid_BernoulliNaiveBayes = GridSearchCV(pipeline_BernoulliNaiveBayes, param_grid
 # grid_LogisticRegression.fit(X_train, y_train)
 # print ("score = %3.2f" %(grid_LogisticRegression.score(X_test, y_test)))
 # print (grid_LogisticRegression.best_params_)
-
+#
 
 print("----------------------------------------------------------------------")
-print("Linear SVC")
-grid_LinearSVC.fit(X_train, y_train)
-print ("score = %3.4f" %(grid_LinearSVC.score(X_test, y_test)))
-print (grid_LinearSVC.best_params_)
+# print("Linear SVC")
+# grid_LinearSVC.fit(X_train, y_train)
+# print ("score = %3.4f" %(grid_LinearSVC.score(X_test, y_test)))
+# print (grid_LinearSVC.best_params_)
+
 
 # print("----------------------------------------------------------------------")        # 0.32 max_depth: 2048
 # print("Decision Tree")
@@ -105,6 +111,14 @@ print (grid_LinearSVC.best_params_)
 # print (grid_BernoulliNaiveBayes.best_params_)
 
 # Todo: Generate id column
-# prediction = grid_LinearSVC.predict(test_x)0.5641
+# prediction = grid_LinearSVC.predict(test_x)
 #
 # prediction = pd.DataFrame(prediction, columns=['Category']).to_csv('prediction.csv')
+
+# ------------------------------------------------------------------------------------------------
+# 10-09 11.00 PM
+# Directly fit the whole train set
+print("Linear SVC")
+grid_LinearSVC.fit(comment, labels_list)
+prediction = grid_LinearSVC.predict(test_x)
+prediction = pd.DataFrame(prediction, columns=['Category']).to_csv('prediction.csv')
