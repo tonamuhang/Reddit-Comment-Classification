@@ -22,7 +22,6 @@ test_x = test['comments']
 labels = train['subreddits']
 
 # Show first 5 rows of raw data
-print("--raw data--\n", comments.head(5))
 
 # # Remove URLs
 # def remove_URLs(text):
@@ -96,7 +95,7 @@ print("--raw data--\n", comments.head(5))
 
 
 # Split Data into train set and test set
-C_train, C_test, L_train, L_test = train_test_split(comments, labels, random_state = 0)
+#C_train, C_test, L_train, L_test = train_test_split(comments, labels, random_state = 0)
 
 
 
@@ -117,9 +116,11 @@ def preprocessComments (vocabV):
                     binaryM[y][z]=1
     return binaryM
 
-def fit (vocabV,documM,L_train,C_train):
+def fit (vocabV):
+    documM = textpreprocess.TextPreprocess.process("reddit_train.csv")
+    L_train = train["subreddits"]
     #total number of comments
-    N=C_train.shape[0]
+    N=documM.shape[0]
     #count number of comments labelled with class K
     Karray = np.array([["hockey",0,[]],["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
                        ["canada",0,[]],["conspiracy",0,[]],["europe",0,[]],["anime",0,[]],["Overwatch",0,[]],
@@ -141,7 +142,7 @@ def fit (vocabV,documM,L_train,C_train):
         index+=1
 
     #compute the relative frequency of comments of class K
-    totalNumberOfComments = C_train.shape[0]
+    totalNumberOfComments = N
     priors=[0]*Karray.shape[0]
     for p in range(Karray.shape[0]):
         priors[p]=Karray[p][1]/totalNumberOfComments
@@ -157,14 +158,17 @@ def fit (vocabV,documM,L_train,C_train):
 
 
 #To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
-def predict (priors,likelyhoods,C_test):
+def predict (priors,likelyhoods):
+    C_test = textpreprocess.TextPreprocess.process("reddit_train.csv")
     Karray = np.array(
         ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
          "canada", "conspiracy", "europe", "anime", "Overwatch",
          "wow", "nfl", "leagueoflegends", "trees", "Music",
          "AskReddit", "worldnews", "funny", "gameofthrones", "movies"])
     vocVector=getVocabularyVector(C_test)
-    docMatrix=preprocessComments(vocVector,C_test)
+    docMatrix=preprocessComments(vocVector)
+    priors = fit(vocVector)[0]
+    likelyhoods = fit(vocVector)[1]
     for i in range(docMatrix.shape[0]):
         for j in range(docMatrix.shape[1]):
             if (docMatrix[i][j]==1):
