@@ -98,16 +98,16 @@ labels = train['subreddits']
 #C_train, C_test, L_train, L_test = train_test_split(comments, labels, random_state = 0)
 
 
-
+keywords = textpreprocess.TextPreprocess.process("reddit_train.csv")
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
-    keywords = textpreprocess.TextPreprocess.process("reddit_train.csv")
+
     vocabularyVector = keywords.reshape(-1)
     return vocabularyVector
 
 #preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
 def preprocessComments (vocabV):
-    documentM = textpreprocess.TextPreprocess.process("reddit_train.csv")
+    documentM = keywords
     binaryM = np.zeros(documentM.shape[0],documentM.shape[1])
     for x in range(vocabV.shape[0]):
         for y in range(documentM.shape[0]):
@@ -117,7 +117,7 @@ def preprocessComments (vocabV):
     return binaryM
 
 def fit (vocabV):
-    documM = textpreprocess.TextPreprocess.process("reddit_train.csv")
+    documM = keywords
     L_train = train["subreddits"]
     #total number of comments
     N=documM.shape[0]
@@ -159,7 +159,7 @@ def fit (vocabV):
 
 #To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
 def predict (priors,likelyhoods):
-    C_test = textpreprocess.TextPreprocess.process("reddit_train.csv")
+    C_test = keywords
     Karray = np.array(
         ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
          "canada", "conspiracy", "europe", "anime", "Overwatch",
