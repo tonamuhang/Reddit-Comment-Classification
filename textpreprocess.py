@@ -49,22 +49,34 @@ def set_lowercase(text):
 def clean_text(text):
     REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@,;]')
     BAD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
-    STOPWORDS = set(stopwords.words('english'))
+    STOPWORDS = set(stopwords.words('english')).union(["gt"])
     extractor = URLExtract()
+    info = " "
 
     for url in extractor.gen_urls(text):
         try:
-            content = urlopen(url, timeout=3).read()
-            content = BeautifulSoup(content).find('title').string  # HTML decoding
-            text += content
+            if "youtube" in url or "youtu.be" in url:
+                content = urlopen(url, timeout=1).read()
+                content = BeautifulSoup(content).find('title').string  # HTML decoding
+                info += " " + content
         except:
             continue
 
+    text += info
     text = text.lower()
     text = REPLACE_BY_SPACE_RE.sub(' ', text)
     text = BAD_SYMBOLS_RE.sub(' ', text)
     text = ' '.join(word for word in text.split() if word not in STOPWORDS)
-    print(text)
+    text = remove_special_chars_digits(text)
+    text = word_tokenize(text)
+    text = remove_repeat(text)
+    text = np.asarray(text)
+    text = lemmatize_new(text)
+
+    text = ' '.join(word for word in text if word not in STOPWORDS)
+
+    TextPreprocess.num += 1
+    print(TextPreprocess.num, " " + text)
     return text
 
 
@@ -81,8 +93,24 @@ def lemmatize(text):
             text[row_i][word_j] = lemmatizer.lemmatize(text[row_i][word_j])
     return text
 
+def lemmatize_new(text):
+    lemmatizer = nltk.WordNetLemmatizer()
+    for i, w in enumerate(text):
+        w = lemmatizer.lemmatize(w, 'v')
+        text[i] = lemmatizer.lemmatize(w)
+
+    return text
+
+def remove_repeat(text):
+    replacer = RepeatReplacer()
+    for i, w in enumerate(text):
+        w = replacer.replace(w)
+        text[i] = w
+    return text
 
 class TextPreprocess:
+
+    num = 0
 
     @staticmethod
     # Remove tags
@@ -131,12 +159,12 @@ class TextPreprocess:
 
         train['comments'] = train['comments'].apply(clean_text)
         comments = train['comments']
-        comments.to_csv('test_processed.csv')
+        comments.to_csv('train_processed.csv')
         return comments
 
 
 # How to use
-TextPreprocess.process("reddit_test.csv")
+TextPreprocess.process("reddit_train.csv")
 
 
 
