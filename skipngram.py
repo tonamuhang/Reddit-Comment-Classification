@@ -43,11 +43,11 @@ model.add(LSTM(100, dropout=0.2, recurrent_dropout=0.2))
 model.add(Dense(20, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-epochs = 6
+epochs = 7
 batch_size = 128
-
-
-checkpointer = ModelCheckpoint(monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+#
+# filepath = "weights.hdf5"
+# checkpointer = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
 history = model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size,validation_split=0.1,
                     callbacks=[EarlyStopping(monitor='val_loss', patience=3, min_delta=0.0001)])
@@ -56,6 +56,6 @@ accr = model.evaluate(X_test,Y_test)
 print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
 
 X_test = pd.read_csv("submit_processed.csv", sep=',').astype(str)
-model.load_weights('weights.hdf5')
+# model.load_weights('weights.hdf5')
 predicted = model.predict(X_test)
 pd.DataFrame(predicted, columns=['Category']).to_csv('oct14_07pm.csv')
