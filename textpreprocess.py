@@ -15,10 +15,10 @@ from bs4 import BeautifulSoup
 import urllib
 from urllib.request import urlopen
 from urlextract import URLExtract
-
-# nltk.download('punkt')
-# nltk.download('wordnet')
-# nltk.download('stopwords')
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('stopwords')
 
 class RepeatReplacer():
     def __init__(self):

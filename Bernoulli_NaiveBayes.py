@@ -98,7 +98,7 @@ labels = train['subreddits']
 #C_train, C_test, L_train, L_test = train_test_split(comments, labels, random_state = 0)
 
 
-keywords = textpreprocess.TextPreprocess.process("reddit_train.csv")
+keywords = pd.read_csv("test_processed.csv")
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
 
@@ -158,7 +158,7 @@ def fit (vocabV):
 
 
 #To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
-def predict (priors,likelyhoods):
+def predict ():
     C_test = keywords
     Karray = np.array(
         ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
@@ -194,3 +194,5 @@ def predict (priors,likelyhoods):
         predictionArray[z]=Karray[indexOfMaxima]
 
     return predictionArray
+
+print(predict())
