@@ -11,7 +11,6 @@ from nltk.tokenize import word_tokenize
 from string import punctuation
 import re
 nltk.download('punkt')
-import textpreprocess
 
 # Read in files
 train = pd.read_csv("reddit_train.csv", sep=',')
@@ -93,22 +92,18 @@ labels = train['subreddits']
 # print("----removed repeat----\n", comments.head(5))
 
 
-
-# Split Data into train set and test set
-#C_train, C_test, L_train, L_test = train_test_split(comments, labels, random_state = 0)
-
-
 keywords = pd.read_csv("test_processed.csv")
+
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
 
-    vocabularyVector = keywords.reshape(-1)
+    vocabularyVector = keywords.to_numpy().reshape(-1)
     return vocabularyVector
 
 #preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
 def preprocessComments (vocabV):
     documentM = keywords
-    binaryM = np.zeros(documentM.shape[0],documentM.shape[1])
+    binaryM = np.zeros((documentM.shape[0],documentM.shape[1]))
     for x in range(vocabV.shape[0]):
         for y in range(documentM.shape[0]):
             for z in range(documentM[y].shape[0]):
@@ -165,7 +160,7 @@ def predict ():
          "canada", "conspiracy", "europe", "anime", "Overwatch",
          "wow", "nfl", "leagueoflegends", "trees", "Music",
          "AskReddit", "worldnews", "funny", "gameofthrones", "movies"])
-    vocVector=getVocabularyVector(C_test)
+    vocVector=getVocabularyVector()
     docMatrix=preprocessComments(vocVector)
     priors = fit(vocVector)[0]
     likelyhoods = fit(vocVector)[1]
@@ -195,4 +190,4 @@ def predict ():
 
     return predictionArray
 
-print(predict())
+print(*predict(),sep="/n")
