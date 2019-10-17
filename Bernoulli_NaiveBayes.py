@@ -93,6 +93,9 @@ labels = train['subreddits']
 
 
 keywords = pd.read_csv("test_processed.csv")
+keywords = keywords[keywords.columns[1]]
+keywords = keywords.apply(word_tokenize)
+print("keywords shape", len(keywords[0]))
 
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
@@ -103,10 +106,10 @@ def getVocabularyVector ():
 #preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
 def preprocessComments (vocabV):
     documentM = keywords
-    binaryM = np.zeros((documentM.shape[0],documentM.shape[1]))
+    binaryM = np.zeros((documentM.shape[0],vocabV.shape[0]))
     for x in range(vocabV.shape[0]):
         for y in range(documentM.shape[0]):
-            for z in range(documentM[y].shape[0]):
+            for z in range(len(documentM[y])):
                 if(vocabV[x]==documentM[y][z]):
                     binaryM[y][z]=1
     return binaryM
@@ -125,6 +128,12 @@ def fit (vocabV):
         for y in range(Karray.shape[0]):
             if(L_train[x]==Karray[y][0]):
                 Karray[y][1]+=1
+                print(type(L_train))
+                print(L_train)
+                print(Karray[y][2])
+                print(documM[x])
+                print(type(Karray[y][2]))
+                print(type(documM[x]))
                 Karray[y][2].append(documM[x])
 
     numberOfCommentsContainWordInClass=[[0]*vocabV.shape[0]]*Karray.shape[0]
