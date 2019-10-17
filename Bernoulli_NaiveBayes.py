@@ -100,15 +100,18 @@ labels=labels.iloc[0:1009].tolist()
 
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
+    vocabularyVector=list()
+    for element in keywords:
+        vocabularyVector=vocabularyVector+element
 
-    vocabularyVector = keywords.to_numpy().reshape(-1)
+    print(vocabularyVector)
     return vocabularyVector
 
 #preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
 def preprocessComments (vocabV):
     documentM = keywords
-    binaryM = np.zeros((documentM.shape[0],vocabV.shape[0]))
-    for x in range(vocabV.shape[0]):
+    binaryM = np.zeros((documentM.shape[0],len(vocabV)))
+    for x in range(len(vocabV)):
         for y in range(documentM.shape[0]):
             for z in range(len(documentM[y])):
                 if(vocabV[x]==documentM[y][z]):
@@ -146,9 +149,9 @@ def fit (vocabV):
         priors[p]=Karray[p][1]/totalNumberOfComments
 
     #compute probabilities of each word given the comment class
-    likelyhoods=[[0]*vocabV.shape[0]]*Karray.shape[0]
+    likelyhoods=[[0]*len(vocabV)]*Karray.shape[0]
     for q in range(Karray.shape[0]):
-        for s in range(vocabV.shape[0]):
+        for s in range(len(vocabV)):
             likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s]/Karray[q][1]
 
     result = [priors,likelyhoods]
