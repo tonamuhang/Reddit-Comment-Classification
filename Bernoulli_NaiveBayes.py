@@ -128,8 +128,8 @@ def fit (vocabV):
         for y in range(Karray.shape[0]):
             if(L_train[x]==Karray[y][0]):
                 Karray[y][1]+=1
-                print(type(L_train))
-                print(L_train)
+                print(type(L_train.iloc[0:1009].tolist()))
+                print(L_train.iloc[0:1009].tolist())
                 print(Karray[y][2])
                 print(documM[x])
                 print(type(Karray[y][2]))
