@@ -96,6 +96,7 @@ keywords = pd.read_csv("test_processed.csv")
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 print("keywords shape", len(keywords[0]))
+labels=labels.iloc[0:1009].tolist()
 
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
@@ -116,7 +117,6 @@ def preprocessComments (vocabV):
 
 def fit (vocabV):
     documM = keywords
-    L_train = train["subreddits"]
     #total number of comments
     N=documM.shape[0]
     #count number of comments labelled with class K
@@ -124,16 +124,10 @@ def fit (vocabV):
                        ["canada",0,[]],["conspiracy",0,[]],["europe",0,[]],["anime",0,[]],["Overwatch",0,[]],
                        ["wow",0,[]],["nfl",0,[]],["leagueoflegends",0,[]],["trees",0,[]],["Music",0,[]],
                        ["AskReddit",0,[]],["worldnews",0,[]],["funny",0,[]],["gameofthrones",0,[]],["movies",0,[]]])
-    for x in range(L_train.shape[0]):
+    for x in range(len(labels)):
         for y in range(Karray.shape[0]):
-            if(L_train[x]==Karray[y][0]):
+            if(labels[x]==Karray[y][0]):
                 Karray[y][1]+=1
-                print(type(L_train.iloc[0:1009].tolist()))
-                print(L_train.iloc[0:1009].tolist())
-                print(Karray[y][2])
-                print(documM[x])
-                print(type(Karray[y][2]))
-                print(type(documM[x]))
                 Karray[y][2].append(documM[x])
 
     numberOfCommentsContainWordInClass=[[0]*vocabV.shape[0]]*Karray.shape[0]
