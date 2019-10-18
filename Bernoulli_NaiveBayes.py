@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 from sklearn import feature_extraction, preprocessing, tree
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -114,11 +115,11 @@ def getVocabularyVector ():
 def preprocessComments (vocabV):
     documentM = keywords
     binaryM = np.zeros((documentM.shape[0],len(vocabV)))
-    for x in range(len(vocabV)):
-        for y in range(documentM.shape[0]):
-            for z in range(len(documentM[y])):
-                if(vocabV[x]==documentM[y][z]):
-                    binaryM[y][z]=1
+    for x in range(len(binaryM)):
+        for y in range(len(vocabV)):
+            for z in range(len(documentM[x])):
+                if(vocabV[y]==documentM[x][z]):
+                    binaryM[x][y]=1
     return binaryM
 
 def fit (vocabV):
@@ -135,7 +136,7 @@ def fit (vocabV):
         for y in range(len(Karray)):
             if(labels[x]==Karray[y][0]):
                 Karray[y][1]+=1
-                Karray[y][2].append(documM[x])
+                Karray[y][2].append(binaryM[x])
                 #print(len(Karray))
                 #print(Karray)
 
@@ -144,12 +145,10 @@ def fit (vocabV):
 
     for i in range(len(Karray)):
         for l in range(len(Karray[i][2])):
-            index = 0
             for k in range(len(vocabV)):
-                if(Karray[i][2][l][index]==vocabV[k]):
+                if(Karray[i][2][l][k]==1):
                     numberOfCommentsContainWordInClass[i][k]+=1
-                    break
-            index+=1
+
     print("////////////////////////////////////////////////////")
     print("numberOfCommentsContainWordInClass is ")
     print(numberOfCommentsContainWordInClass)
@@ -160,7 +159,7 @@ def fit (vocabV):
         priors[p]=Karray[p][1]/totalNumberOfComments
 
     #compute probabilities of each word given the comment class
-    likelyhoods=[[1]*len(vocabV)]*len(Karray)
+    likelyhoods=[[0]*len(vocabV)]*len(Karray)
     for q in range(len(Karray)):
         for s in range (len(vocabV)):
             likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s]/Karray[q][1]
@@ -202,6 +201,9 @@ def predict ():
                 #likelyhoods=[[0]*len(vocabV)]*len(Karray)
                     else:
                         docMatrix[i][j]=1-likelyhoods[k][j]
+    print("////////////////////////////////////////////////////////////")
+    print("docMatrix_processed is")
+    print(docMatrix)
 
 
 
@@ -210,7 +212,7 @@ def predict ():
     for p in range(docMatrix.shape[0]):
         for q in range(docMatrix.shape[1]):
             if(docMatrix[p][q]!=0):
-                product[p]=product[p]*docMatrix[p][q]
+                product[p]=product[p]+ math.log(docMatrix[p][q])
     print("/////////////////////////////////////////////////")
     print("product is")
     print(product)
