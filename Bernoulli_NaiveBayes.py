@@ -107,7 +107,7 @@ def getVocabularyVector ():
     for element in keywords:
         vocabularyVector=vocabularyVector+element
 
-    print(vocabularyVector)
+    #print(vocabularyVector)
     return vocabularyVector
 
 #preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
@@ -122,6 +122,7 @@ def preprocessComments (vocabV):
     return binaryM
 
 def fit (vocabV):
+    binaryM = preprocessComments(vocabV)
     documM = keywords
     #total number of comments
     N=documM.shape[0]
@@ -135,18 +136,23 @@ def fit (vocabV):
             if(labels[x]==Karray[y][0]):
                 Karray[y][1]+=1
                 Karray[y][2].append(documM[x])
-                print(len(Karray))
-                print(Karray)
+                #print(len(Karray))
+                #print(Karray)
 
     numberOfCommentsContainWordInClass=[[0]*len(vocabV)]*len(Karray)
     #count number of comments of class K containing word w
-    for i in range(len(Karray)):
-        index=0
-        for l in range(len(Karray[i][2])):
-            if(Karray[i][2][l][index]==1):
-                numberOfCommentsContainWordInClass[i][l]+=1
-        index+=1
 
+    for i in range(len(Karray)):
+        for l in range(len(Karray[i][2])):
+            index = 0
+            for k in range(len(vocabV)):
+                if(Karray[i][2][l][index]==vocabV[k]):
+                    numberOfCommentsContainWordInClass[i][k]+=1
+                    break
+            index+=1
+    print("////////////////////////////////////////////////////")
+    print("numberOfCommentsContainWordInClass is ")
+    print(numberOfCommentsContainWordInClass)
     #compute the relative frequency of comments of class K
     totalNumberOfComments = N
     priors=[0]*len(Karray)
@@ -154,9 +160,9 @@ def fit (vocabV):
         priors[p]=Karray[p][1]/totalNumberOfComments
 
     #compute probabilities of each word given the comment class
-    likelyhoods=[[0]*len(vocabV)]*len(Karray)
+    likelyhoods=[[1]*len(vocabV)]*len(Karray)
     for q in range(len(Karray)):
-        for s in range(len(vocabV)):
+        for s in range (len(vocabV)):
             likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s]/Karray[q][1]
 
     result = [priors,likelyhoods]
@@ -171,13 +177,21 @@ def predict ():
          "wow", "nfl", "leagueoflegends", "trees", "Music",
          "AskReddit", "worldnews", "funny", "gameofthrones", "movies"]
     vocVector=getVocabularyVector()
-    print(len(vocVector))
+    print("/////////////////////////////////////////////////")
+    print("vocVector is")
+    print(vocVector)
     docMatrix=preprocessComments(vocVector)
-    print(docMatrix.shape)
+    print("/////////////////////////////////////////////////")
+    print("docMatrix is")
+    print(docMatrix)
     priors = fit(vocVector)[0]
-    print(len(priors))
+    print("/////////////////////////////////////////////////")
+    print("priors is")
+    print(priors)
     likelyhoods = fit(vocVector)[1]
-    print(len(likelyhoods))
+    print("/////////////////////////////////////////////////")
+    print("likelyhoods is")
+    print(likelyhoods)
     for i in range(docMatrix.shape[0]):
         #binaryM = np.zeros((documentM.shape[0],len(vocabV)))
         for j in range(docMatrix.shape[1]):
@@ -195,7 +209,11 @@ def predict ():
     product=[1]*docMatrix.shape[0]
     for p in range(docMatrix.shape[0]):
         for q in range(docMatrix.shape[1]):
-            product[p]=product[p]*docMatrix[p][q]
+            if(docMatrix[p][q]!=0):
+                product[p]=product[p]*docMatrix[p][q]
+    print("/////////////////////////////////////////////////")
+    print("product is")
+    print(product)
 
     #compute posterior probabilities for each comment based on 20 classes
     #the final prediction will be the max of all the posterior probabilities
@@ -204,6 +222,9 @@ def predict ():
     for x in range(len(product)):
         for y in range(len(priors)):
             posProb[x][y]=product[x]*priors[y]
+    print("/////////////////////////////////////////////////")
+    print("posProb is")
+    print(posProb)
     for z in range(len(posProb)):
         maximumProb = max(posProb[z])
         indexOfMaxima=posProb[z].index(maximumProb)
