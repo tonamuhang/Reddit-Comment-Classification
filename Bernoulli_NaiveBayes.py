@@ -96,7 +96,10 @@ keywords = pd.read_csv("test_processed.csv")
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 print("keywords shape", len(keywords[0]))
-labels=labels.iloc[0:1009].tolist()
+print("keywords shape", len(keywords[1]))
+labels=labels.iloc[0:200].tolist()
+print(labels)
+print("labels shape", len(labels))
 
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
@@ -123,34 +126,36 @@ def fit (vocabV):
     #total number of comments
     N=documM.shape[0]
     #count number of comments labelled with class K
-    Karray = np.array([["hockey",0,[]],["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
+    Karray = [["hockey",0,[]],["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
                        ["canada",0,[]],["conspiracy",0,[]],["europe",0,[]],["anime",0,[]],["Overwatch",0,[]],
                        ["wow",0,[]],["nfl",0,[]],["leagueoflegends",0,[]],["trees",0,[]],["Music",0,[]],
-                       ["AskReddit",0,[]],["worldnews",0,[]],["funny",0,[]],["gameofthrones",0,[]],["movies",0,[]]])
+                       ["AskReddit",0,[]],["worldnews",0,[]],["funny",0,[]],["gameofthrones",0,[]],["movies",0,[]]]
     for x in range(len(labels)):
-        for y in range(Karray.shape[0]):
+        for y in range(len(Karray)):
             if(labels[x]==Karray[y][0]):
                 Karray[y][1]+=1
                 Karray[y][2].append(documM[x])
+                print(len(Karray))
+                print(Karray)
 
-    numberOfCommentsContainWordInClass=[[0]*vocabV.shape[0]]*Karray.shape[0]
+    numberOfCommentsContainWordInClass=[[0]*len(vocabV)]*len(Karray)
     #count number of comments of class K containing word w
-    for i in range(Karray.shape[0]):
+    for i in range(len(Karray)):
         index=0
-        for l in range(Karray[i][2].shape[0]):
+        for l in range(len(Karray[i][2])):
             if(Karray[i][2][l][index]==1):
                 numberOfCommentsContainWordInClass[i][l]+=1
         index+=1
 
     #compute the relative frequency of comments of class K
     totalNumberOfComments = N
-    priors=[0]*Karray.shape[0]
-    for p in range(Karray.shape[0]):
+    priors=[0]*len(Karray)
+    for p in range(len(Karray)):
         priors[p]=Karray[p][1]/totalNumberOfComments
 
     #compute probabilities of each word given the comment class
-    likelyhoods=[[0]*len(vocabV)]*Karray.shape[0]
-    for q in range(Karray.shape[0]):
+    likelyhoods=[[0]*len(vocabV)]*len(Karray)
+    for q in range(len(Karray)):
         for s in range(len(vocabV)):
             likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s]/Karray[q][1]
 
@@ -161,21 +166,31 @@ def fit (vocabV):
 #To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
 def predict ():
     C_test = keywords
-    Karray = np.array(
-        ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
+    Keyarray = ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
          "canada", "conspiracy", "europe", "anime", "Overwatch",
          "wow", "nfl", "leagueoflegends", "trees", "Music",
-         "AskReddit", "worldnews", "funny", "gameofthrones", "movies"])
+         "AskReddit", "worldnews", "funny", "gameofthrones", "movies"]
     vocVector=getVocabularyVector()
+    print(len(vocVector))
     docMatrix=preprocessComments(vocVector)
+    print(docMatrix.shape)
     priors = fit(vocVector)[0]
+    print(len(priors))
     likelyhoods = fit(vocVector)[1]
+    print(len(likelyhoods))
     for i in range(docMatrix.shape[0]):
+        #binaryM = np.zeros((documentM.shape[0],len(vocabV)))
         for j in range(docMatrix.shape[1]):
-            if (docMatrix[i][j]==1):
-                docMatrix[i][j]*likelyhoods[i][j]
-            else:
-                docMatrix[i][j]=1-likelyhoods[i][j]
+            for k in range(len(Karray)):
+                if (labels[i]==Karray[k]):
+                    if (docMatrix[i][j]==1):
+                        docMatrix[i][j]=docMatrix[i][j]*likelyhoods[k][j]
+                #likelyhoods=[[0]*len(vocabV)]*len(Karray)
+                    else:
+                        docMatrix[i][j]=1-likelyhoods[k][j]
+
+
+
 
     product=[1]*docMatrix.shape[0]
     for p in range(docMatrix.shape[0]):
@@ -184,16 +199,16 @@ def predict ():
 
     #compute posterior probabilities for each comment based on 20 classes
     #the final prediction will be the max of all the posterior probabilities
-    posProb = [[0]*priors.shape[0]]*product.shape[0]
-    predictionArray=[0]*product.shape[0]
-    for x in range(product.shape[0]):
-        for y in range(priors.shape[0]):
+    posProb = [[0]*len(priors)]*len(product)
+    predictionArray=[0]*len(product)
+    for x in range(len(product)):
+        for y in range(len(priors)):
             posProb[x][y]=product[x]*priors[y]
-    for z in range(posProb.shape[0]):
+    for z in range(len(posProb)):
         maximumProb = max(posProb[z])
-        indexOfMaxima=posProb.index(maximumProb)
-        predictionArray[z]=Karray[indexOfMaxima]
+        indexOfMaxima=posProb[z].index(maximumProb)
+        predictionArray[z]=Keyarray[indexOfMaxima]
 
     return predictionArray
 
-print(*predict(),sep="/n")
+print(*predict(),sep=",")
