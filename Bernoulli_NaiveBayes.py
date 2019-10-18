@@ -181,8 +181,8 @@ def predict ():
     for i in range(docMatrix.shape[0]):
         #binaryM = np.zeros((documentM.shape[0],len(vocabV)))
         for j in range(docMatrix.shape[1]):
-            for k in range(len(Karray)):
-                if (labels[i]==Karray[k]):
+            for k in range(len(Keyarray)):
+                if (labels[i]==Keyarray[k]):
                     if (docMatrix[i][j]==1):
                         docMatrix[i][j]=docMatrix[i][j]*likelyhoods[k][j]
                 #likelyhoods=[[0]*len(vocabV)]*len(Karray)
