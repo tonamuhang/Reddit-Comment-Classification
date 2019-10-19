@@ -93,22 +93,37 @@ labels = train['subreddits']
 # print("----removed repeat----\n", comments.head(5))
 
 
-keywords = pd.read_csv("test_processed.csv")
+keywords = pd.read_csv("test_processed.csv",header = None)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
-print("keywords shape", len(keywords[0]))
-print("keywords shape", len(keywords[1]))
-labels=labels.iloc[0:200].tolist()
-print(labels)
-print("labels shape", len(labels))
+print("```````start`````````")
+print("-keywords-")
+print(keywords)
+print("``````````````````````````````````")
+print("keywords[0]", keywords[0])
+print("keywords[0] length", len(keywords[0]))
+print("``````````````````````````````````")
+labels=labels.iloc[0:201].tolist()
+print("labels", labels)
+print('labels type is list')
+print("labels length", len(labels))
+print("``````````````````````````````````")
+
+def removeDuplicateWords(iterable):
+    seen = set()
+    result = []
+    for item in iterable:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
 
 #conclude comments into a [V] vocabulary vector
 def getVocabularyVector ():
     vocabularyVector=list()
     for element in keywords:
         vocabularyVector=vocabularyVector+element
-
-    #print(vocabularyVector)
     return vocabularyVector
 
 #preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
@@ -149,9 +164,10 @@ def fit (vocabV):
                 if(Karray[i][2][l][k]==1):
                     numberOfCommentsContainWordInClass[i][k]+=1
 
-    print("////////////////////////////////////////////////////")
+    print("``````````````````````````````````")
     print("numberOfCommentsContainWordInClass is ")
-    print(numberOfCommentsContainWordInClass)
+    print(numberOfCommentsContainWordInClass[0])
+    print(numberOfCommentsContainWordInClass[1])
     #compute the relative frequency of comments of class K
     totalNumberOfComments = N
     priors=[0]*len(Karray)
@@ -170,25 +186,42 @@ def fit (vocabV):
 
 #To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
 def predict ():
-    C_test = keywords
     Keyarray = ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
          "canada", "conspiracy", "europe", "anime", "Overwatch",
          "wow", "nfl", "leagueoflegends", "trees", "Music",
          "AskReddit", "worldnews", "funny", "gameofthrones", "movies"]
+    print("Keyarray(list)", Keyarray)
+    print("``````````````````````````````````")
     vocVector=getVocabularyVector()
-    print("/////////////////////////////////////////////////")
-    print("vocVector is")
-    print(vocVector)
+    print("vocVector(list)", vocVector)
+    print("length of vocVector ",len(vocVector))
+    vocVector = removeDuplicateWords(vocVector)
+    print("--------------remove all duplicates in vocVector-------------")
+    print("New vocVector(list)", vocVector)
+    print("New length of vocVector ",len(vocVector))
+    print("``````````````````````````````````")
     docMatrix=preprocessComments(vocVector)
-    print("/////////////////////////////////////////////////")
-    print("docMatrix is")
-    print(docMatrix)
+    print("docMatrix shape", docMatrix.shape)
+    print("docMatrix", docMatrix)
+    print("``````````````````````````````````")
     priors = fit(vocVector)[0]
-    print("/////////////////////////////////////////////////")
+    print("``````````````````````````````````")
+
+
+
+
+
+
+
+
+
+
+
+
     print("priors is")
     print(priors)
     likelyhoods = fit(vocVector)[1]
-    print("/////////////////////////////////////////////////")
+    print("``````````````````````````````````")
     print("likelyhoods is")
     print(likelyhoods)
     for i in range(docMatrix.shape[0]):
@@ -201,7 +234,7 @@ def predict ():
                 #likelyhoods=[[0]*len(vocabV)]*len(Karray)
                     else:
                         docMatrix[i][j]=1-likelyhoods[k][j]
-    print("////////////////////////////////////////////////////////////")
+    print("``````````````````````````````````")
     print("docMatrix_processed is")
     print(docMatrix)
 
@@ -213,7 +246,7 @@ def predict ():
         for q in range(docMatrix.shape[1]):
             if(docMatrix[p][q]!=0):
                 product[p]=product[p]+ math.log(docMatrix[p][q])
-    print("/////////////////////////////////////////////////")
+    print("``````````````````````````````````")
     print("product is")
     print(product)
 
@@ -224,7 +257,7 @@ def predict ():
     for x in range(len(product)):
         for y in range(len(priors)):
             posProb[x][y]=product[x]*priors[y]
-    print("/////////////////////////////////////////////////")
+    print("``````````````````````````````````")
     print("posProb is")
     print(posProb)
     for z in range(len(posProb)):
