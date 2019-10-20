@@ -171,12 +171,10 @@ def fit (vocabV):
 
     for i in range(len(Karray)):              # 20 subreddits
         print("i=",i)
-        print(numberOfCommentsContainWordInClass[i])
-        print(numberOfCommentsContainWordInClass[i+1])
         for l in range(len(Karray[i][2])):    # length of the corresponding binary vectors
             for k in range(len(vocabV)):      # 2078 (words)
                 if Karray[i][2][l][k] == 1:    # every binary vectors' every word is 1(present)
-                    numberOfCommentsContainWordInClass[i][k] += 1   #
+                    numberOfCommentsContainWordInClass[i][k][0] += 1   #
 
 
     print("``````````````````````````````````")
@@ -193,7 +191,7 @@ def fit (vocabV):
     likelyhoods=[[0]*len(vocabV)]*len(Karray)
     for q in range(len(Karray)):
         for s in range (len(vocabV)):
-            likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s]/Karray[q][1]
+            likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s][0]/Karray[q][1]
 
     result = [priors,likelyhoods]
     return result
@@ -222,7 +220,7 @@ def predict ():
     priors = fit(vocVector)[0]
     print("``````````````````````````````````")
     print("----------reach?---------------")
-    exit()
+    # exit()
 
 
 
