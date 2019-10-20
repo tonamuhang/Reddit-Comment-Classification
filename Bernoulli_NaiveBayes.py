@@ -93,7 +93,11 @@ labels = train['subreddits']
 # print("----removed repeat----\n", comments.head(5))
 
 
+<<<<<<< HEAD
 keywords = pd.read_csv("test_processed_oct20.csv",header = None).astype(str)
+=======
+keywords = pd.read_csv("test_processed.csv",header = None)
+>>>>>>> f146b9bc59b69ddb46dd8cd5b1836f278a473a21
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 print("```````start`````````")
@@ -145,7 +149,11 @@ def fit (vocabV):
     #total number of comments
     N=documM.shape[0]
     #count number of comments labelled with class K
+<<<<<<< HEAD
     Karray = [["hockey",0, []],     ["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
+=======
+    Karray = [   ["hockey",0, []  ],     ["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
+>>>>>>> f146b9bc59b69ddb46dd8cd5b1836f278a473a21
                        ["canada",0,[]],["conspiracy",0,[]],["europe",0,[]],["anime",0,[]],["Overwatch",0,[]],
                        ["wow",0,[]],["nfl",0,[]],["leagueoflegends",0,[]],["trees",0,[]],["Music",0,[]],
                        ["AskReddit",0,[]],["worldnews",0,[]],["funny",0,[]],["gameofthrones",0,[]],["movies",0,[]]]
@@ -159,11 +167,14 @@ def fit (vocabV):
                 #print(Karray)
 
     numberOfCommentsContainWordInClass=[[0]*len(vocabV)]*len(Karray) # (20,2078) 20 lists, every list has 2078 words
+<<<<<<< HEAD
     numberOfCommentsContainWordInClass = []
     for i in range(len(Karray)):
         numberOfCommentsContainWordInClass.append([])
         for j in range(len(vocabV)):
             numberOfCommentsContainWordInClass[i].append([0])
+=======
+>>>>>>> f146b9bc59b69ddb46dd8cd5b1836f278a473a21
 
     print("numberOfCommentsContainWordInClass", numberOfCommentsContainWordInClass)
     #count number of comments of class K containing word w
@@ -175,7 +186,11 @@ def fit (vocabV):
         print(numberOfCommentsContainWordInClass[i+1])
         for l in range(len(Karray[i][2])):    # length of the corresponding binary vectors
             for k in range(len(vocabV)):      # 2078 (words)
+<<<<<<< HEAD
                 if Karray[i][2][l][k] == 1:    # every binary vectors' every word is 1(present)
+=======
+                if(Karray[i][2][l][k]==1):    # every binary vectors' every word is 1(present)
+>>>>>>> f146b9bc59b69ddb46dd8cd5b1836f278a473a21
                     numberOfCommentsContainWordInClass[i][k] += 1   #
 
 
@@ -282,4 +297,8 @@ def predict ():
 
     return predictionArray
 
+<<<<<<< HEAD
 print(*predict(),sep=",")
+=======
+print(*predict(),sep=",")
+>>>>>>> f146b9bc59b69ddb46dd8cd5b1836f278a473a21
