@@ -138,31 +138,41 @@ def preprocessComments (vocabV):
     return binaryM
 
 def fit (vocabV):
+    # vocabV has length 2078
+    print("In fit function")
     binaryM = preprocessComments(vocabV)
     documM = keywords
     #total number of comments
     N=documM.shape[0]
     #count number of comments labelled with class K
-    Karray = [["hockey",0,[]],["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
+    Karray = [   ["hockey",0, []  ],     ["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
                        ["canada",0,[]],["conspiracy",0,[]],["europe",0,[]],["anime",0,[]],["Overwatch",0,[]],
                        ["wow",0,[]],["nfl",0,[]],["leagueoflegends",0,[]],["trees",0,[]],["Music",0,[]],
                        ["AskReddit",0,[]],["worldnews",0,[]],["funny",0,[]],["gameofthrones",0,[]],["movies",0,[]]]
-    for x in range(len(labels)):
-        for y in range(len(Karray)):
-            if(labels[x]==Karray[y][0]):
-                Karray[y][1]+=1
-                Karray[y][2].append(binaryM[x])
+
+    for x in range(len(labels)):  # 201 comments and its tags
+        for y in range(len(Karray)): # 20 subreddits
+            if(labels[x]==Karray[y][0]): # at index [y][0] means subreddit like "hockey"
+                Karray[y][1]+=1          # if comments'tag matches Karray [y][0], use the counter [y][1] to count it
+                Karray[y][2].append(binaryM[x]) # then, append corresponding binary vector into index[2]
                 #print(len(Karray))
                 #print(Karray)
 
-    numberOfCommentsContainWordInClass=[[0]*len(vocabV)]*len(Karray)
+    numberOfCommentsContainWordInClass=[[0]*len(vocabV)]*len(Karray) # (20,2078) 20 lists, every list has 2078 words
+
+    print("numberOfCommentsContainWordInClass", numberOfCommentsContainWordInClass)
     #count number of comments of class K containing word w
 
-    for i in range(len(Karray)):
-        for l in range(len(Karray[i][2])):
-            for k in range(len(vocabV)):
-                if(Karray[i][2][l][k]==1):
-                    numberOfCommentsContainWordInClass[i][k]+=1
+
+    for i in range(len(Karray)):              # 20 subreddits
+        print("i=",i)
+        print(numberOfCommentsContainWordInClass[i])
+        print(numberOfCommentsContainWordInClass[i+1])
+        for l in range(len(Karray[i][2])):    # length of the corresponding binary vectors
+            for k in range(len(vocabV)):      # 2078 (words)
+                if(Karray[i][2][l][k]==1):    # every binary vectors' every word is 1(present)
+                    numberOfCommentsContainWordInClass[i][k] += 1   #
+
 
     print("``````````````````````````````````")
     print("numberOfCommentsContainWordInClass is ")
@@ -206,8 +216,8 @@ def predict ():
     print("``````````````````````````````````")
     priors = fit(vocVector)[0]
     print("``````````````````````````````````")
-
-
+    print("----------reach?---------------")
+    exit()
 
 
 
