@@ -21,7 +21,6 @@ my_stopwords = text.ENGLISH_STOP_WORDS.union(["january", "february", "march", "a
                                               "december", "tomorrow", "today", "yesterday", "hundred", "thousand",
                                               "million"])
 
-
 # Load data
 from sklearn.pipeline import Pipeline
 
@@ -116,7 +115,6 @@ print("----------------------------------------------------------------------")
 # prediction = pd.DataFrame(prediction, columns=['Category']).to_csv('prediction.csv')
 
 # ------------------------------------------------------------------------------------------------
-# 10-09 11.00 PM
 # Directly fit the whole train set
 print("Linear SVC")
 grid_LinearSVC.fit(comment, labels_list)
