@@ -26,7 +26,7 @@ keywords = pd.read_csv("test_processed.csv", header=None).astype(str)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 
-labels = labels.iloc[0:201].tolist()
+labels = labels.iloc[0:-1].tolist()
 
 
 def removeDuplicateWords(iterable):
@@ -48,7 +48,7 @@ def getVocabularyVector():
 
 
 # preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
-def preprocessComments(vocabV):
+def preprocessComments(vocabV,keywords):
     documentM = keywords
     binaryM = np.zeros((documentM.shape[0], len(vocabV)))
     for x in range(len(binaryM)):
@@ -59,10 +59,10 @@ def preprocessComments(vocabV):
     return binaryM
 
 
-def fit(vocabV):
+def fit(vocabV,keywords):
     # vocabV has length 2078
     print("In fit function")
-    binaryM = preprocessComments(vocabV)
+    binaryM = preprocessComments(vocabV,keywords)
     documM = keywords
     # total number of comments
     N = documM.shape[0]
@@ -72,12 +72,12 @@ def fit(vocabV):
               ["wow", 0, []], ["nfl", 0, []], ["leagueoflegends", 0, []], ["trees", 0, []], ["Music", 0, []],
               ["AskReddit", 0, []], ["worldnews", 0, []], ["funny", 0, []], ["gameofthrones", 0, []], ["movies", 0, []]]
 
-    for x in range(len(labels)):  # 201 comments and its tags
+    for x in range(len(labels)):  # comments and its tags
         for y in range(len(Karray)):  # 20 subreddits
             if (labels[x] == Karray[y][0]):  # at index [y][0] means subreddit like "hockey"
                 Karray[y][1] += 1  # if comments'tag matches Karray [y][0], use the counter [y][1] to count it
                 Karray[y][2].append(binaryM[x])  # then, append corresponding binary vector into index[2]
-  # (20,2078) 20 lists, every list has 2078 words
+
     numberOfCommentsContainWordInClass = []
     for i in range(len(Karray)):
         numberOfCommentsContainWordInClass.append([])
@@ -125,10 +125,10 @@ def predict():
 
     vocVector = removeDuplicateWords(vocVector)
 
-    docMatrix = preprocessComments(vocVector)
+    docMatrix = preprocessComments(vocVector,keywords)
 
-    priors = fit(vocVector)[0]
-    likelyhoods = fit(vocVector)[1]
+    priors = fit(vocVector,keywords)[0]
+    likelyhoods = fit(vocVector,keywords)[1]
 
     #compute likelihoods of each vocabulary based on its existence and its own likelihoods
     for i in range(docMatrix.shape[0]):
