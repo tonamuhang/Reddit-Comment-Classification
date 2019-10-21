@@ -22,7 +22,7 @@ comments = train['comments']
 test_x = test['comments']
 labels = train['subreddits']
 
-keywords = pd.read_csv("test_processed_oct20.csv", header=None).astype(str)
+keywords = pd.read_csv("test_processed.csv", header=None).astype(str)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 print("```````start`````````")
@@ -180,7 +180,7 @@ def predict():
     #Thus, we multiply then occurences of each word in a class, also known as the multiplication of individual word likelihoods
     product = []
     for j in range(docMatrix.shape[0]):
-        product[i].append([1])
+        product.append([1])
 
     for p in range(docMatrix.shape[0]):
         for q in range(docMatrix.shape[1]):
@@ -203,7 +203,7 @@ def predict():
         for y in range(len(priors)):
             posteriorProbability[x][y][0] = product[x][0] * priors[y][0]
     print("``````````````````````````````````")
-    print("posProb is")
+    print("posteriorProbility is")
     print(posteriorProbability)
 
     predictionArray = []
@@ -225,6 +225,7 @@ def predict():
         maximumPosteriorProbabilities[z][0]=maximunOfRow
 
 
+
     #list variable that stores all the indexies of the maximum posterior probability of each row
     indexOfMaxima = []
     for k in range(len(product)):
@@ -232,9 +233,10 @@ def predict():
 
     #for loop that gets the indexies of the maximum posterior probabilities of each row
     #Meanwhile, it gets the corresponding indexies in the keyarray which is the anticipated prediction class
-    for k in range (len(product)):
-
+    for k in range (len(indexOfMaxima)):
         indexOfMaxima[k][0] = posteriorProbability[k].index(maximumPosteriorProbabilities[k][0])
+        print("indexOfMaxima is")
+        print(indexOfMaxima)
         predictionArray[k][0] = Keyarray[indexOfMaxima[k][0]]
 
         return predictionArray
