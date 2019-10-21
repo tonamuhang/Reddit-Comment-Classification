@@ -120,7 +120,7 @@ def fit(vocabV,keywords):
 
 
 # To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
-def predict(keywords):
+def predict(testdata):
     Keyarray = ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
                 "canada", "conspiracy", "europe", "anime", "Overwatch",
                 "wow", "nfl", "leagueoflegends", "trees", "Music",
