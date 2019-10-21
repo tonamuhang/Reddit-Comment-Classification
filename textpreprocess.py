@@ -160,7 +160,11 @@ class TextPreprocess:
 
         train['comments'] = train['comments'].apply(clean_text)
         comments = train['comments']
-        comments.to_csv('train_processed.csv')
+
+# Uncomment to choose between train and test processed
+        #comments.to_csv('train_processed.csv')
+        comments.to_csv('test_processed.csv')
+
         return comments
 
 # Note:
@@ -168,7 +172,8 @@ class TextPreprocess:
 #    which is the result of reddit_traint.csv being preprocessed.
 
 # How to use
-TextPreprocess.process("reddit_train.csv")
-
+# Uncomment to choose between train and test processed
+#TextPreprocess.process("reddit_train.csv")
+TextPreprocess.process("reddit_test.csv")
 
 
