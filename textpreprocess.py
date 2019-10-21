@@ -25,7 +25,8 @@ class RepeatReplacer():
         self.repeat_reg = re.compile(r'(\w*)(\w)\2(\w*)')
         self.repl = r'\1\2\3'
     def replace(self, word):
-        if wordnet.synsets(word):  # 判断当前字符串是否是单词
+        # check if it is a standard word
+        if wordnet.synsets(word):
             return word
         repl_word = self.repeat_reg.sub(self.repl, word)
         if repl_word != word:
@@ -162,6 +163,9 @@ class TextPreprocess:
         comments.to_csv('train_processed.csv')
         return comments
 
+# Note:
+# This program will output a csv file named train_processed.csv
+#    which is the result of reddit_traint.csv being preprocessed.
 
 # How to use
 TextPreprocess.process("reddit_train.csv")
