@@ -4,13 +4,14 @@ import math
 from sklearn import feature_extraction, preprocessing, tree
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 import nltk
 from nltk import WordNetLemmatizer, PorterStemmer
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
 from string import punctuation
 import re
+
 nltk.download('punkt')
 
 # Read in files
@@ -21,79 +22,7 @@ comments = train['comments']
 test_x = test['comments']
 labels = train['subreddits']
 
-# Show first 5 rows of raw data
-
-# # Remove URLs
-# def remove_URLs(text):
-#     text = re.sub(r"http\S+", " ", text)
-#     return text
-#
-# # Set all words to lowercase
-# def set_lowercase(text):
-#     text = text.lower();
-#     return text;
-#
-# # Remove tags
-# def remove_tags(text):
-#     text = re.sub("&lt;/?.*?&gt;"," &lt;&gt; ",text)
-#     return text
-#
-# # Remove special characters and digits
-# def remove_special_chars_digits(text):
-#     text = re.sub("(\\d|\\W)+"," ",text)
-#     return text
-#
-# # Note: Order of remove operations matters!
-# comments = comments.apply(lambda x: remove_URLs(x))
-# comments = comments.apply(lambda x: set_lowercase(x))
-# comments = comments.apply(lambda x: remove_tags(x))
-# comments = comments.apply(lambda x: remove_special_chars_digits(x))
-# print("----remove urls tags, set lowercase, remove specials characters and digits----\n", comments.head(5))
-#
-# # Tokenize comments
-# comments = comments.apply(word_tokenize)
-# print("----tokenized----\n", comments.head(12))
-#
-# # Lemmatize
-# lemmatizer = nltk.WordNetLemmatizer()
-# def lemmatize(text):
-#     for row_i in range(comments.shape[0]):
-#         for word_j in range(len(comments[row_i])):
-#             comments[row_i][word_j] = lemmatizer.lemmatize(comments[row_i][word_j])
-#     return text
-# comments = lemmatize(comments)
-# print("----lemmatized----\n", comments.head(12))
-#
-# # Remove Stopwords
-# stop_words = set(stopwords.words('english'))
-# comments = comments.apply(lambda x: [item for item in x if item not in stop_words])
-# print("----removed stop words----\n", comments.head(5))
-#
-# # Repeat Replacer
-# # http://www.ishenping.com/ArtInfo/971959.html
-# class RepeatReplacer():
-#     def __init__(self):
-#         self.repeat_reg = re.compile(r'(\w*)(\w)\2(\w*)')
-#         self.repl = r'\1\2\3'
-#     def replace(self, word):
-#         if wordnet.synsets(word):  # 判断当前字符串是否是单词
-#             return word
-#         repl_word = self.repeat_reg.sub(self.repl, word)
-#         if repl_word != word:
-#             return self.replace(repl_word)
-#         else:
-#             return repl_word
-# replacer = RepeatReplacer()
-# def remove_repeat(text):
-#     for row_i in range(comments.shape[0]):
-#         for word_j in range(len(comments[row_i])):
-#             comments[row_i][word_j] = replacer.replace(comments[row_i][word_j])
-#     return text
-# comments = remove_repeat(comments)
-# print("----removed repeat----\n", comments.head(5))
-
-
-keywords = pd.read_csv("test_processed_oct20.csv",header = None).astype(str)
+keywords = pd.read_csv("test_processed_oct20.csv", header=None).astype(str)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 print("```````start`````````")
@@ -103,11 +32,12 @@ print("``````````````````````````````````")
 print("keywords[0]", keywords[0])
 print("keywords[0] length", len(keywords[0]))
 print("``````````````````````````````````")
-labels=labels.iloc[0:201].tolist()
+labels = labels.iloc[0:201].tolist()
 print("labels", labels)
 print('labels type is list')
 print("labels length", len(labels))
 print("``````````````````````````````````")
+
 
 def removeDuplicateWords(iterable):
     seen = set()
@@ -119,46 +49,45 @@ def removeDuplicateWords(iterable):
     return result
 
 
-#conclude comments into a [V] vocabulary vector
-def getVocabularyVector ():
-    vocabularyVector=list()
+# conclude comments into a [V] vocabulary vector
+def getVocabularyVector():
+    vocabularyVector = list()
     for element in keywords:
-        vocabularyVector=vocabularyVector+element
+        vocabularyVector = vocabularyVector + element
     return vocabularyVector
 
-#preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
-def preprocessComments (vocabV):
+
+# preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
+def preprocessComments(vocabV):
     documentM = keywords
-    binaryM = np.zeros((documentM.shape[0],len(vocabV)))
+    binaryM = np.zeros((documentM.shape[0], len(vocabV)))
     for x in range(len(binaryM)):
         for y in range(len(vocabV)):
             for z in range(len(documentM[x])):
-                if(vocabV[y]==documentM[x][z]):
-                    binaryM[x][y]=1
+                if (vocabV[y] == documentM[x][z]):
+                    binaryM[x][y] = 1
     return binaryM
 
-def fit (vocabV):
+
+def fit(vocabV):
     # vocabV has length 2078
     print("In fit function")
     binaryM = preprocessComments(vocabV)
     documM = keywords
-    #total number of comments
-    N=documM.shape[0]
-    #count number of comments labelled with class K
-    Karray = [["hockey",0, []],     ["nba",0,[]],["soccer",0,[]],["baseball",0,[]],["GlobalOffensive",0,[]],
-                       ["canada",0,[]],["conspiracy",0,[]],["europe",0,[]],["anime",0,[]],["Overwatch",0,[]],
-                       ["wow",0,[]],["nfl",0,[]],["leagueoflegends",0,[]],["trees",0,[]],["Music",0,[]],
-                       ["AskReddit",0,[]],["worldnews",0,[]],["funny",0,[]],["gameofthrones",0,[]],["movies",0,[]]]
+    # total number of comments
+    N = documM.shape[0]
+    # count number of comments labelled with class K
+    Karray = [["hockey", 0, []], ["nba", 0, []], ["soccer", 0, []], ["baseball", 0, []], ["GlobalOffensive", 0, []],
+              ["canada", 0, []], ["conspiracy", 0, []], ["europe", 0, []], ["anime", 0, []], ["Overwatch", 0, []],
+              ["wow", 0, []], ["nfl", 0, []], ["leagueoflegends", 0, []], ["trees", 0, []], ["Music", 0, []],
+              ["AskReddit", 0, []], ["worldnews", 0, []], ["funny", 0, []], ["gameofthrones", 0, []], ["movies", 0, []]]
 
     for x in range(len(labels)):  # 201 comments and its tags
-        for y in range(len(Karray)): # 20 subreddits
-            if(labels[x]==Karray[y][0]): # at index [y][0] means subreddit like "hockey"
-                Karray[y][1]+=1          # if comments'tag matches Karray [y][0], use the counter [y][1] to count it
-                Karray[y][2].append(binaryM[x]) # then, append corresponding binary vector into index[2]
-                #print(len(Karray))
-                #print(Karray)
-
-    numberOfCommentsContainWordInClass=[[0]*len(vocabV)]*len(Karray) # (20,2078) 20 lists, every list has 2078 words
+        for y in range(len(Karray)):  # 20 subreddits
+            if (labels[x] == Karray[y][0]):  # at index [y][0] means subreddit like "hockey"
+                Karray[y][1] += 1  # if comments'tag matches Karray [y][0], use the counter [y][1] to count it
+                Karray[y][2].append(binaryM[x])  # then, append corresponding binary vector into index[2]
+  # (20,2078) 20 lists, every list has 2078 words
     numberOfCommentsContainWordInClass = []
     for i in range(len(Karray)):
         numberOfCommentsContainWordInClass.append([])
@@ -166,54 +95,59 @@ def fit (vocabV):
             numberOfCommentsContainWordInClass[i].append([0])
 
     print("numberOfCommentsContainWordInClass", numberOfCommentsContainWordInClass)
-    #count number of comments of class K containing word w
+    # count number of comments of class K containing word w
 
-
-    for i in range(len(Karray)):              # 20 subreddits
-        print("i=",i)
-        for l in range(len(Karray[i][2])):    # length of the corresponding binary vectors
-            for k in range(len(vocabV)):      # 2078 (words)
-                if Karray[i][2][l][k] == 1:    # every binary vectors' every word is 1(present)
-                    numberOfCommentsContainWordInClass[i][k][0] += 1   #
-
+    for i in range(len(Karray)):  # 20 subreddits
+        print("i=", i)
+        for l in range(len(Karray[i][2])):  # length of the corresponding binary vectors
+            for k in range(len(vocabV)):  # 2078 (words)
+                if Karray[i][2][l][k] == 1:  # every binary vectors' every word is 1(present)
+                    numberOfCommentsContainWordInClass[i][k][0] += 1  #
 
     print("``````````````````````````````````")
     print("numberOfCommentsContainWordInClass is ")
     print(numberOfCommentsContainWordInClass[0])
     print(numberOfCommentsContainWordInClass[1])
-    #compute the relative frequency of comments of class K
+    # compute the relative frequency of comments of class K
     totalNumberOfComments = N
-    priors=[0]*len(Karray)
+    priors = []
+    for i in range(len(Karray)):
+        priors.append([0])
     for p in range(len(Karray)):
-        priors[p]=Karray[p][1]/totalNumberOfComments
+        priors[p][0] = Karray[p][1] / totalNumberOfComments
 
-    #compute probabilities of each word given the comment class
-    likelyhoods=[[0]*len(vocabV)]*len(Karray)
+    # compute probabilities of each word given the comment class
+    likelihoods = []
+    for i in range(len(Karray)):
+        likelihoods.append([])
+        for j in range(len(vocabV)):
+            likelihoods[i].append([0])
+
     for q in range(len(Karray)):
-        for s in range (len(vocabV)):
-            likelyhoods[q][s]=numberOfCommentsContainWordInClass[q][s][0]/Karray[q][1]
+        for s in range(len(vocabV)):
+            likelihoods[q][s][0] = numberOfCommentsContainWordInClass[q][s][0] / Karray[q][1]
 
-    result = [priors,likelyhoods]
+    result = [priors, likelihoods]
     return result
 
 
-#To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
-def predict ():
+# To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
+def predict():
     Keyarray = ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
-         "canada", "conspiracy", "europe", "anime", "Overwatch",
-         "wow", "nfl", "leagueoflegends", "trees", "Music",
-         "AskReddit", "worldnews", "funny", "gameofthrones", "movies"]
+                "canada", "conspiracy", "europe", "anime", "Overwatch",
+                "wow", "nfl", "leagueoflegends", "trees", "Music",
+                "AskReddit", "worldnews", "funny", "gameofthrones", "movies"]
     print("Keyarray(list)", Keyarray)
     print("``````````````````````````````````")
-    vocVector=getVocabularyVector()
+    vocVector = getVocabularyVector()
     print("vocVector(list)", vocVector)
-    print("length of vocVector ",len(vocVector))
+    print("length of vocVector ", len(vocVector))
     vocVector = removeDuplicateWords(vocVector)
     print("--------------remove all duplicates in vocVector-------------")
     print("New vocVector(list)", vocVector)
-    print("New length of vocVector ",len(vocVector))
+    print("New length of vocVector ", len(vocVector))
     print("``````````````````````````````````")
-    docMatrix=preprocessComments(vocVector)
+    docMatrix = preprocessComments(vocVector)
     print("docMatrix shape", docMatrix.shape)
     print("docMatrix", docMatrix)
     print("``````````````````````````````````")
@@ -222,15 +156,6 @@ def predict ():
     print("----------reach?---------------")
     # exit()
 
-
-
-
-
-
-
-
-
-
     print("priors is")
     print(priors)
     likelyhoods = fit(vocVector)[1]
@@ -238,46 +163,82 @@ def predict ():
     print("likelyhoods is")
     print(likelyhoods)
     for i in range(docMatrix.shape[0]):
-        #binaryM = np.zeros((documentM.shape[0],len(vocabV)))
+        # binaryM = np.zeros((documentM.shape[0],len(vocabV)))
         for j in range(docMatrix.shape[1]):
             for k in range(len(Keyarray)):
-                if (labels[i]==Keyarray[k]):
-                    if (docMatrix[i][j]==1):
-                        docMatrix[i][j]=docMatrix[i][j]*likelyhoods[k][j]
-                #likelyhoods=[[0]*len(vocabV)]*len(Karray)
+                if (labels[i] == Keyarray[k]):
+                    if (docMatrix[i][j] == 1):
+                        docMatrix[i][j] = docMatrix[i][j] * likelyhoods[k][j]
+                    # likelyhoods=[[0]*len(vocabV)]*len(Karray)
                     else:
-                        docMatrix[i][j]=1-likelyhoods[k][j]
+                        docMatrix[i][j] = 1 - likelyhoods[k][j]
     print("``````````````````````````````````")
     print("docMatrix_processed is")
     print(docMatrix)
-
-
-
-
-    product=[1]*docMatrix.shape[0]
+    
+    #By making Naive Bayesm Assumption, we assume that the probability of each word occuring in the document is independant of the occurences of the other words
+    #Thus, we multiply then occurences of each word in a class, also known as the multiplication of individual word likelihoods
+    product = []
+    for j in range(docMatrix.shape[0]):
+        product[i].append([1])
+        
     for p in range(docMatrix.shape[0]):
         for q in range(docMatrix.shape[1]):
-            if(docMatrix[p][q]!=0):
-                product[p]=product[p]+ math.log(docMatrix[p][q])
+            if (docMatrix[p][q] != 0):
+                product[p][0] = product[p][0]*docMatrix[p][q]
     print("``````````````````````````````````")
     print("product is")
     print(product)
 
-    #compute posterior probabilities for each comment based on 20 classes
-    #the final prediction will be the max of all the posterior probabilities
-    posProb = [[0]*len(priors)]*len(product)
-    predictionArray=[0]*len(product)
+    # compute posterior probabilities for each comment based on 20 classes
+    # the final prediction will be the max of all the posterior probabilities
+    posteriorProbability = []
+    for i in range(len(product)):
+        posteriorProbability.append([])
+        for j in range(len(priors)):
+            posteriorProbability[i].append([0])
+    #posProb = [[0] * len(priors)] * len(product)
+    
     for x in range(len(product)):
         for y in range(len(priors)):
-            posProb[x][y]=product[x]*priors[y]
+            posteriorProbability[x][y][0] = product[x][0] * priors[y][0]
     print("``````````````````````````````````")
     print("posProb is")
-    print(posProb)
-    for z in range(len(posProb)):
-        maximumProb = max(posProb[z])
-        indexOfMaxima=posProb[z].index(maximumProb)
-        predictionArray[z]=Keyarray[indexOfMaxima]
+    print(posteriorProbability)
 
-    return predictionArray
+    predictionArray = []
+    for k in range(len(product)):
+        predictionArray.append([0])
+    
+    #list variable to store the maximum posterior probability of each row
+    maximumPosteriorProbabilities=[]
+    for a in range(len(product)):
+        maximumPosteriorProbabilities.append([0])
+    
+    #by locating the index of the maximum posterior probability on each row 
+    #we located the index in keyarray such that the comments has the biggest probability being nin that class
+    for z in range(len(posteriorProbability)):
+        maximunOfRow = 0
+        for k in range(len(posteriorProbability[z])):
+            if(posteriorProbability[z][k][0]>maximunOfRow):
+                maximunOfRow=posteriorProbability[z][k][0]
+            maximumPosteriorProbabilities[z][0]=maximunOfRow
+    
+    
+    #list variable that stores all the indexies of the maximum posterior probability of each row        
+    indexOfMaxima = []
+    for k in range(len(product)):
+        indexOfMaxima.append([0])
+    
+    #for loop that gets the indexies of the maximum posterior probabilities of each row
+    #Meanwhile, it gets the corresponding indexies in the keyarray which is the anticipated prediction class
+    for k in range (len(product)):
+        
+        indexOfMaxima[k][0] = posteriorProbability[k].index(maximumPosteriorProbabilities[k][0])
+        predictionArray[k][0] = Keyarray[indexOfMaxima[k][0]]
+            
+        return predictionArray
 
-print(*predict(),sep=",")
+
+print(*predict(), sep=",")
+
