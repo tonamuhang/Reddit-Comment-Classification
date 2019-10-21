@@ -22,10 +22,16 @@ comments = train['comments']
 test_x = test['comments']
 labels = train['subreddits']
 
-#read preprocessed training data from the test_processed.csv file
+#read preprocessed training data from the train_processed.csv file
+#to avoid the waste of time, we preprocessed both training data and test data in advance to be analysed
 keywords = pd.read_csv("train_processed.csv", header=None).astype(str)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
+
+#resd preprocessed test data from the test_processed.csv file
+testdata = pd.read_csv("test_processed.csv", header=None).astype(str)
+testdata = testdata[testdata.columns[1]]
+testdata = testdata.apply(word_tokenize)
 
 labels = labels.iloc[0:-1].tolist()
 
@@ -114,7 +120,7 @@ def fit(vocabV,keywords):
 
 
 # To classify an unlabelled comment in C_test,we estimate the posterior probability for each class K
-def predict():
+def predict(keywords):
     Keyarray = ["hockey", "nba", "soccer", "baseball", "GlobalOffensive",
                 "canada", "conspiracy", "europe", "anime", "Overwatch",
                 "wow", "nfl", "leagueoflegends", "trees", "Music",
@@ -198,5 +204,5 @@ def predict():
     return predictionArray
 
 
-print(*predict(), sep=",")
+print(*predict(testdata), sep=",")
 
