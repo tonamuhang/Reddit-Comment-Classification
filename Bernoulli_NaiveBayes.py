@@ -168,20 +168,20 @@ def predict():
             for k in range(len(Keyarray)):
                 if (labels[i] == Keyarray[k]):
                     if (docMatrix[i][j] == 1):
-                        docMatrix[i][j] = docMatrix[i][j] * likelyhoods[k][j]
+                        docMatrix[i][j] = docMatrix[i][j] * likelyhoods[k][j][0]
                     # likelyhoods=[[0]*len(vocabV)]*len(Karray)
                     else:
-                        docMatrix[i][j] = 1 - likelyhoods[k][j]
+                        docMatrix[i][j] = 1 - likelyhoods[k][j][0]
     print("``````````````````````````````````")
     print("docMatrix_processed is")
     print(docMatrix)
-    
+
     #By making Naive Bayesm Assumption, we assume that the probability of each word occuring in the document is independant of the occurences of the other words
     #Thus, we multiply then occurences of each word in a class, also known as the multiplication of individual word likelihoods
     product = []
     for j in range(docMatrix.shape[0]):
         product[i].append([1])
-        
+
     for p in range(docMatrix.shape[0]):
         for q in range(docMatrix.shape[1]):
             if (docMatrix[p][q] != 0):
@@ -198,7 +198,7 @@ def predict():
         for j in range(len(priors)):
             posteriorProbability[i].append([0])
     #posProb = [[0] * len(priors)] * len(product)
-    
+
     for x in range(len(product)):
         for y in range(len(priors)):
             posteriorProbability[x][y][0] = product[x][0] * priors[y][0]
@@ -209,34 +209,34 @@ def predict():
     predictionArray = []
     for k in range(len(product)):
         predictionArray.append([0])
-    
+
     #list variable to store the maximum posterior probability of each row
     maximumPosteriorProbabilities=[]
     for a in range(len(product)):
         maximumPosteriorProbabilities.append([0])
-    
-    #by locating the index of the maximum posterior probability on each row 
+
+    #by locating the index of the maximum posterior probability on each row
     #we located the index in keyarray such that the comments has the biggest probability being nin that class
     for z in range(len(posteriorProbability)):
         maximunOfRow = 0
         for k in range(len(posteriorProbability[z])):
             if(posteriorProbability[z][k][0]>maximunOfRow):
                 maximunOfRow=posteriorProbability[z][k][0]
-            maximumPosteriorProbabilities[z][0]=maximunOfRow
-    
-    
-    #list variable that stores all the indexies of the maximum posterior probability of each row        
+        maximumPosteriorProbabilities[z][0]=maximunOfRow
+
+
+    #list variable that stores all the indexies of the maximum posterior probability of each row
     indexOfMaxima = []
     for k in range(len(product)):
         indexOfMaxima.append([0])
-    
+
     #for loop that gets the indexies of the maximum posterior probabilities of each row
     #Meanwhile, it gets the corresponding indexies in the keyarray which is the anticipated prediction class
     for k in range (len(product)):
-        
+
         indexOfMaxima[k][0] = posteriorProbability[k].index(maximumPosteriorProbabilities[k][0])
         predictionArray[k][0] = Keyarray[indexOfMaxima[k][0]]
-            
+
         return predictionArray
 
 
