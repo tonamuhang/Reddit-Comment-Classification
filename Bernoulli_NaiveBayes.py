@@ -22,7 +22,8 @@ comments = train['comments']
 test_x = test['comments']
 labels = train['subreddits']
 
-keywords = pd.read_csv("test_processed.csv", header=None).astype(str)
+#read preprocessed training data from the test_processed.csv file
+keywords = pd.read_csv("train_processed.csv", header=None).astype(str)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
 
@@ -60,8 +61,6 @@ def preprocessComments(vocabV,keywords):
 
 
 def fit(vocabV,keywords):
-    # vocabV has length 2078
-    print("In fit function")
     binaryM = preprocessComments(vocabV,keywords)
     documM = keywords
     # total number of comments
