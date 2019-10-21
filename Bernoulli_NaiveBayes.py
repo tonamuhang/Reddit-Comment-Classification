@@ -84,11 +84,8 @@ def fit(vocabV):
         for j in range(len(vocabV)):
             numberOfCommentsContainWordInClass[i].append([0])
 
-    print("numberOfCommentsContainWordInClass", numberOfCommentsContainWordInClass)
     # count number of comments of class K containing word w
-
     for i in range(len(Karray)):  # 20 subreddits
-        print("i=", i)
         for l in range(len(Karray[i][2])):  # length of the corresponding binary vectors
             for k in range(len(vocabV)):  # 2078 (words)
                 if Karray[i][2][l][k] == 1:  # every binary vectors' every word is 1(present)
