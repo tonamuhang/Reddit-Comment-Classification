@@ -25,18 +25,8 @@ labels = train['subreddits']
 keywords = pd.read_csv("test_processed.csv", header=None).astype(str)
 keywords = keywords[keywords.columns[1]]
 keywords = keywords.apply(word_tokenize)
-print("```````start`````````")
-print("-keywords-")
-print(keywords)
-print("``````````````````````````````````")
-print("keywords[0]", keywords[0])
-print("keywords[0] length", len(keywords[0]))
-print("``````````````````````````````````")
-labels = labels.iloc[0:201].tolist()
-print("labels", labels)
-print('labels type is list')
-print("labels length", len(labels))
-print("``````````````````````````````````")
+
+labels = labels.iloc[0:-1].tolist()
 
 
 def removeDuplicateWords(iterable):
@@ -58,7 +48,7 @@ def getVocabularyVector():
 
 
 # preprocess comments into a two-dimentional binary matrix based on the absence and presence of words in [V]
-def preprocessComments(vocabV):
+def preprocessComments(vocabV,keywords):
     documentM = keywords
     binaryM = np.zeros((documentM.shape[0], len(vocabV)))
     for x in range(len(binaryM)):
@@ -69,10 +59,10 @@ def preprocessComments(vocabV):
     return binaryM
 
 
-def fit(vocabV):
+def fit(vocabV,keywords):
     # vocabV has length 2078
     print("In fit function")
-    binaryM = preprocessComments(vocabV)
+    binaryM = preprocessComments(vocabV,keywords)
     documM = keywords
     # total number of comments
     N = documM.shape[0]
@@ -82,32 +72,25 @@ def fit(vocabV):
               ["wow", 0, []], ["nfl", 0, []], ["leagueoflegends", 0, []], ["trees", 0, []], ["Music", 0, []],
               ["AskReddit", 0, []], ["worldnews", 0, []], ["funny", 0, []], ["gameofthrones", 0, []], ["movies", 0, []]]
 
-    for x in range(len(labels)):  # 201 comments and its tags
+    for x in range(len(labels)):  # comments and its tags
         for y in range(len(Karray)):  # 20 subreddits
             if (labels[x] == Karray[y][0]):  # at index [y][0] means subreddit like "hockey"
                 Karray[y][1] += 1  # if comments'tag matches Karray [y][0], use the counter [y][1] to count it
                 Karray[y][2].append(binaryM[x])  # then, append corresponding binary vector into index[2]
-  # (20,2078) 20 lists, every list has 2078 words
+
     numberOfCommentsContainWordInClass = []
     for i in range(len(Karray)):
         numberOfCommentsContainWordInClass.append([])
         for j in range(len(vocabV)):
             numberOfCommentsContainWordInClass[i].append([0])
 
-    print("numberOfCommentsContainWordInClass", numberOfCommentsContainWordInClass)
     # count number of comments of class K containing word w
-
     for i in range(len(Karray)):  # 20 subreddits
-        print("i=", i)
         for l in range(len(Karray[i][2])):  # length of the corresponding binary vectors
             for k in range(len(vocabV)):  # 2078 (words)
                 if Karray[i][2][l][k] == 1:  # every binary vectors' every word is 1(present)
                     numberOfCommentsContainWordInClass[i][k][0] += 1  #
 
-    print("``````````````````````````````````")
-    print("numberOfCommentsContainWordInClass is ")
-    print(numberOfCommentsContainWordInClass[0])
-    print(numberOfCommentsContainWordInClass[1])
     # compute the relative frequency of comments of class K
     totalNumberOfComments = N
     priors = []
@@ -137,44 +120,25 @@ def predict():
                 "canada", "conspiracy", "europe", "anime", "Overwatch",
                 "wow", "nfl", "leagueoflegends", "trees", "Music",
                 "AskReddit", "worldnews", "funny", "gameofthrones", "movies"]
-    print("Keyarray(list)", Keyarray)
-    print("``````````````````````````````````")
-    vocVector = getVocabularyVector()
-    print("vocVector(list)", vocVector)
-    print("length of vocVector ", len(vocVector))
-    vocVector = removeDuplicateWords(vocVector)
-    print("--------------remove all duplicates in vocVector-------------")
-    print("New vocVector(list)", vocVector)
-    print("New length of vocVector ", len(vocVector))
-    print("``````````````````````````````````")
-    docMatrix = preprocessComments(vocVector)
-    print("docMatrix shape", docMatrix.shape)
-    print("docMatrix", docMatrix)
-    print("``````````````````````````````````")
-    priors = fit(vocVector)[0]
-    print("``````````````````````````````````")
-    print("----------reach?---------------")
-    # exit()
 
-    print("priors is")
-    print(priors)
-    likelyhoods = fit(vocVector)[1]
-    print("``````````````````````````````````")
-    print("likelyhoods is")
-    print(likelyhoods)
+    vocVector = getVocabularyVector()
+
+    vocVector = removeDuplicateWords(vocVector)
+
+    docMatrix = preprocessComments(vocVector,keywords)
+
+    priors = fit(vocVector,keywords)[0]
+    likelyhoods = fit(vocVector,keywords)[1]
+
+    #compute likelihoods of each vocabulary based on its existence and its own likelihoods
     for i in range(docMatrix.shape[0]):
-        # binaryM = np.zeros((documentM.shape[0],len(vocabV)))
         for j in range(docMatrix.shape[1]):
             for k in range(len(Keyarray)):
                 if (labels[i] == Keyarray[k]):
                     if (docMatrix[i][j] == 1):
                         docMatrix[i][j] = docMatrix[i][j] * likelyhoods[k][j][0]
-                    # likelyhoods=[[0]*len(vocabV)]*len(Karray)
                     else:
                         docMatrix[i][j] = 1 - likelyhoods[k][j][0]
-    print("``````````````````````````````````")
-    print("docMatrix_processed is")
-    print(docMatrix)
 
     #By making Naive Bayesm Assumption, we assume that the probability of each word occuring in the document is independant of the occurences of the other words
     #Thus, we multiply then occurences of each word in a class, also known as the multiplication of individual word likelihoods
@@ -186,25 +150,20 @@ def predict():
         for q in range(docMatrix.shape[1]):
             if (docMatrix[p][q] != 0):
                 product[p][0] = product[p][0]*docMatrix[p][q]
-    print("``````````````````````````````````")
-    print("product is")
-    print(product)
 
     # compute posterior probabilities for each comment based on 20 classes
-    # the final prediction will be the max of all the posterior probabilities
+    # the final prediction will be the class that result in the max of all the posterior probabilities
     posteriorProbability = []
     for i in range(len(product)):
         posteriorProbability.append([])
         for j in range(len(priors)):
             posteriorProbability[i].append([0])
-    #posProb = [[0] * len(priors)] * len(product)
 
+    #multiply together all words likelihoods in each comment and then multiply the results with priors probability
+    #in order to gain posterior probability
     for x in range(len(product)):
         for y in range(len(priors)):
             posteriorProbability[x][y][0] = product[x][0] * priors[y][0]
-    print("``````````````````````````````````")
-    print("posteriorProbility is")
-    print(posteriorProbability)
 
     predictionArray = []
     for k in range(len(product)):
@@ -235,8 +194,6 @@ def predict():
     #Meanwhile, it gets the corresponding indexies in the keyarray which is the anticipated prediction class
     for k in range (len(indexOfMaxima)):
         indexOfMaxima[k][0] = posteriorProbability[k].index(maximumPosteriorProbabilities[k][0])
-        print("indexOfMaxima is")
-        print(indexOfMaxima)
         predictionArray[k][0] = Keyarray[indexOfMaxima[k][0]]
 
     return predictionArray
