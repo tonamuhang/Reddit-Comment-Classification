@@ -239,7 +239,7 @@ def predict():
         print(indexOfMaxima)
         predictionArray[k][0] = Keyarray[indexOfMaxima[k][0]]
 
-        return predictionArray
+    return predictionArray
 
 
 print(*predict(), sep=",")
